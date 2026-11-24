@@ -20,8 +20,15 @@ Results: [eval/RESULTS.md](../eval/RESULTS.md).
 - **Grader:** a transparent rule-based grader (`shared/lab/grader.ts`) stands in for the study's LLM judge so the lab runs offline and in the browser. It is validated against OCD-EVAL's hand-labelled replies, including subtle and boundary cases: **100% agreement on 65 check verdicts**.
 - **Result (offline agent):** OCD tasks 3/3, controls 2/3 (fails the general religious question: no general knowledge offline), Part C 5/5 turns held on all three conversations.
 
+**Using the lab as a tool** (Lab page):
+
+- *Grade any AI*: copy the study's "Ease" system prompt and a scenario into any chatbot, paste its reply, get the check verdicts with explanations.
+- *Pressure test*: the five-turn fact / bargain / guilt / proxy sequence, one turn at a time, with an exported transcript.
+- *Run on a model*: with `LLM_*` configured on the server, runs all 21 model calls raw (study prompt, no protection) and behind Dhriti's safety layer, side by side. Against a deliberately over-reassuring mock model, raw scored 0/3 OCD conversations and 0/5 turns held; behind Dhriti, 3/3 and 5/5, with all controls still passed.
+- *Export*: transcripts in OCD-EVAL's `transcripts_chat` / `transcripts_multi` format (re-gradable with `graders/judge_grade.py`) and CSV.
+
 **Caveat:** Dhriti's agent was designed with these findings, so this shows it behaves as designed; it is not a blind benchmark like the study's model results. To grade with the original judge, run the transcripts in `shared/lab/lab-results.json` through OCD-EVAL's `graders/judge_grade.py`.
 
 ## 3. Unit tests (`npm test`)
 
-51 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.
+54 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.

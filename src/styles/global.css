@@ -239,6 +239,7 @@ th { color: var(--muted); font-weight: 800; }
 
 .feature .icon { transition: transform 0.3s; }
 .feature:hover .icon { transform: rotate(-8deg) scale(1.1); }
+.convo { white-space: pre-wrap; font-family: var(--font); font-size: 0.88rem; background: #fffaf3; border: 2px dashed var(--line-strong); border-radius: var(--radius-sm); padding: 12px; margin: 0; max-height: 260px; overflow-y: auto; }
 .hello { display: flex; align-items: center; gap: 14px; }
 
 .calm .mascot *, .calm-mode .main > *, .calm-mode .orbit, .calm-mode .mascot * { animation: none !important; }

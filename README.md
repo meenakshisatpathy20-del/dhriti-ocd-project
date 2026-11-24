@@ -29,7 +29,7 @@ OCD urges and panic strike when hands are wet, busy or shaking. Typing is the on
 | **Lessons** | 9 psychoeducation lessons (OCD, the cycle, ERP, reassurance, intrusive thoughts, family, panic, treatment, relapse), read aloud, voice quiz | ✓ |
 | **Voice diary & report** | Private spoken diary; 14-day report with Y-BOCS trend, peak-anxiety trend, outcomes; printable PDF; shared only with consent | ✓ |
 | **Professional marketplace** | KYC onboarding (council, registration number, qualification, certificate upload); human verification console; booking online/offline; patient-doctor chat; consented report sharing | Chat works with dictation |
-| **Safety Lab** | Runs Dhriti's agent through OCD-EVAL scenarios (Part B single reply, Part C five turns of pressure), graded live | – |
+| **Safety Lab (OCD-EVAL)** | Our OCD-EVAL benchmark as a working tool: study results; Dhriti's own results; **grade any chatbot** by pasting its reply; a copy-paste **five-turn pressure test**; **run any connected model** raw (study prompt) or behind Dhriti's safety layer; export in OCD-EVAL transcript format for the study's LLM judge | – |
 | **Wispr Flow mode** | Every text box is dictation-ready; a global mode switches all input to text boxes for Wispr Flow | See [docs/WISPR_FLOW.md](docs/WISPR_FLOW.md) |
 | **Privacy & calm** | Data stays on the device; Quiet mode for shared homes; calm visuals; export / delete all data; works offline (service worker) | – |
 | **Warm design** | Doodled cosmos, Tara the star mascot (bobs, blinks, listens, celebrates), orbiting planets round the mic, sound bars, star-burst celebrations, breathing ring; all motion stops in calm mode | – |
@@ -58,7 +58,7 @@ Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | **ML pipeline** on the public OCD patient dataset (1,500 records): audit → train → cross-validate → export | `npm run ml` | [ml/reports/REPORT.md](ml/reports/REPORT.md) |
 | **OCD-Eval (intent)**: does Dhriti understand what people say? 145 labelled utterances (8 intents) in 5 language groups + held-out set, self-harm release gate | `npm run eval` | [eval/RESULTS.md](eval/RESULTS.md) |
 | **Safety Lab (OCD-EVAL behaviour)**: Dhriti's agent vs. our OCD-EVAL scenarios, grader validated against hand labels | `npm run lab` | [lab/RESULTS.md](lab/RESULTS.md) |
-| **Unit tests** (51) | `npm test` | – |
+| **Unit tests** (54) | `npm test` | – |
 
 ### Key findings (honest)
 
@@ -66,7 +66,19 @@ Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 2. **Keyword rules do not generalise.** On a held-out set, exact-phrase self-harm recall was 0.25. We added a broad, self-directed soft-risk check-in (held-out safety catch 1.00) and an optional language-model layer, and we name a clinician-labelled dataset as the next step.
 3. **Knowing is not doing.** Our OCD-EVAL study showed models that triage OCD perfectly can still tell a mother with harm OCD to step away from her baby. Dhriti turns those findings into guardrails; in the Safety Lab it passes 3/3 OCD conversations and holds the line for 5/5 turns under pressure, and its offline grader agrees with 100% of OCD-EVAL's 65 hand-labelled verdicts. (Not a blind benchmark: see [lab/RESULTS.md](lab/RESULTS.md).)
 
-## Run it
+## Deploy (recommended for demos)
+
+Dhriti is one Node service (web app + API). The free Render plan is enough.
+
+1. Sign in at [render.com](https://render.com) with GitHub.
+2. **New → Blueprint** → pick this repository. Render reads `render.yaml`.
+3. Click **Apply**. After about 3-5 minutes you get a public HTTPS link (HTTPS is required for the microphone).
+4. In the service's **Environment** tab, copy `ADMIN_TOKEN` (generated for you) for the `/admin` page.
+5. Optional: set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` to connect any OpenAI-compatible model.
+
+Notes: on the free plan the service sleeps after 15 minutes idle (the first visit then takes about 50 seconds), and bookings, chats and uploaded certificates reset on restart (patient data lives on the phone and is unaffected). Open the link once a few minutes before presenting. A `Dockerfile` is included for Railway, Fly.io or Cloud Run.
+
+## Run it locally
 
 Requirements: Node.js 20+ (22 recommended). Chrome on Android or desktop gives the best speech recognition.
 

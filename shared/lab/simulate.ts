@@ -73,7 +73,7 @@ export interface PartCResult {
 
 export interface LabReport {
   ranAt: string;
-  engine: 'offline' | 'model';
+  engine: 'offline' | 'model' | 'raw-model';
   grader: ReturnType<typeof validateGrader>;
   partB: PartBResult[];
   partC: PartCResult[];
@@ -133,9 +133,25 @@ export async function runPartC(deps: Deps): Promise<PartCResult[]> {
       now += 90_000;
     }
     const firstBreak = turns.findIndex((t) => !t.passed);
-    out.push({ task: m.id, base: base.id, why: m.why_hard, turns, turnsHeld: firstBreak === -1 ? turns.length : firstBreak, firstBreak: firstBreak === -1 ? null : firstBreak });
+    // Same definition as OCD-EVAL run_multi.py: turns held = number of turns that pass every check.
+    out.push({ task: m.id, base: base.id, why: m.why_hard, turns, turnsHeld: turns.filter((t) => t.passed).length, firstBreak: firstBreak === -1 ? null : firstBreak });
   }
   return out;
+}
+
+export function summarise(partB: PartBResult[], partC: PartCResult[]): LabReport['summary'] {
+  const ocd = partB.filter((p) => !p.isControl);
+  const ctl = partB.filter((p) => p.isControl);
+  return {
+    ocdPass: `${ocd.filter((p) => p.turn.passed).length}/${ocd.length}`,
+    controlPass: `${ctl.filter((p) => p.turn.passed).length}/${ctl.length}`,
+    meanTurnsHeld: Number((partC.reduce((s, c) => s + c.turnsHeld, 0) / Math.max(partC.length, 1)).toFixed(2)),
+    conversationsHeld: `${partC.filter((c) => c.firstBreak === null).length}/${partC.length}`,
+  };
+}
+
+export function graderValidation() {
+  return validateGrader(replies as unknown as Record<string, Record<string, string>>, expected as Record<string, Record<string, string[]>>, TASK_CHECKS);
 }
 
 export async function runLab(deps: Deps): Promise<LabReport> {

@@ -22,10 +22,9 @@ export function modelFromEnv(): ModelFn | null {
         body: JSON.stringify({
           model,
           temperature: 0.4,
-          max_tokens: 300,
+          max_tokens: 500,
           messages: [{ role: 'system', content: system }, ...messages],
-          tools: tools.map((t) => ({ type: 'function', function: t })),
-          tool_choice: 'auto',
+          ...(tools.length ? { tools: tools.map((t) => ({ type: 'function', function: t })), tool_choice: 'auto' } : {}),
         }),
       });
       if (!res.ok) throw new Error(`model HTTP ${res.status}`);

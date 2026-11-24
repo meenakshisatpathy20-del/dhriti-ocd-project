@@ -1,6 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import multer from 'multer';
 import { existsSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runAgent } from '../shared/agent/run';
@@ -12,6 +13,8 @@ import nbJson from '../shared/ml/intent-nb.json';
 import mlModel from '../shared/ml/model.json';
 import { db, hashKey, newId, newKey, nextSlots, publicProfessional, save, type Booking, type Professional } from './db';
 import { modelFromEnv, modelInfo } from './llm';
+import { runLab } from '../shared/lab/simulate';
+import { runRawModel } from '../shared/lab/raw';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 try {
@@ -21,13 +24,16 @@ try {
 }
 
 const PORT = Number(process.env.PORT ?? 8787);
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? 'dhriti-admin';
+const PROD = process.env.NODE_ENV === 'production';
+// Never run a public deployment with the demo admin token.
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? (PROD ? randomBytes(12).toString('base64url') : 'dhriti-admin');
 const nb = nbJson as unknown as NaiveBayesModel;
 const model = modelFromEnv();
 
 const app = express();
 app.use(express.json({ limit: '256kb' }));
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // correct client IPs behind Render/Railway proxies (rate limiting)
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
@@ -94,6 +100,25 @@ app.post('/api/agent', async (req, res) => {
     res.json(await runAgent(text.trim(), context, { nb, model }));
   } catch (err) {
     bad(res, 500, (err as Error).message);
+  }
+});
+
+// ---------- Safety Lab (OCD-EVAL) ----------
+
+let labBusy = false;
+app.post('/api/lab/run', async (req, res) => {
+  const target = String(req.body?.target ?? 'dhriti');
+  if ((target === 'dhriti-model' || target === 'raw-model') && !model) return bad(res, 400, 'No language model is configured on the server (set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL).');
+  if (labBusy) return bad(res, 429, 'A lab run is already in progress. Please wait.');
+  labBusy = true;
+  try {
+    const report = target === 'raw-model' ? await runRawModel(model!, process.env.LLM_MODEL ?? 'model')
+      : await runLab({ nb, model: target === 'dhriti-model' ? model : null });
+    res.json({ ...report, target, modelName: target === 'dhriti' ? 'Dhriti on-device agent' : process.env.LLM_MODEL });
+  } catch (err) {
+    bad(res, 502, `Lab run failed: ${(err as Error).message}`);
+  } finally {
+    labBusy = false;
   }
 });
 
@@ -288,5 +313,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 db();
 app.listen(PORT, () => {
   const m = modelInfo();
-  console.log(`Dhriti API on http://localhost:${PORT} | agent: ${m.configured ? `model ${m.model}` : 'offline planner'} | admin token: ${ADMIN_TOKEN === 'dhriti-admin' ? 'default (set ADMIN_TOKEN)' : 'set'}`);
+  console.log(`Dhriti API on http://localhost:${PORT} | agent: ${m.configured ? `model ${m.model}` : 'offline planner'}`);
+  if (!process.env.ADMIN_TOKEN) console.log(`Admin token for this run: ${ADMIN_TOKEN}${PROD ? ' (random; set ADMIN_TOKEN to fix it)' : ' (local default)'}`);
 });
