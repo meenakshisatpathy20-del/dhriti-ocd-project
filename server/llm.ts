@@ -10,10 +10,15 @@ export function modelFromEnv(): ModelFn | null {
   const key = process.env.LLM_API_KEY;
   const model = process.env.LLM_MODEL;
   if (!base || !key || !model) return null;
+  return openAiCompatible(base, key, model);
+}
 
+/** A model function for any OpenAI-compatible endpoint (also used by the lab with a user's own key). */
+export function openAiCompatible(base: string, key: string, model: string, timeoutMs = 12_000): ModelFn {
+  base = base.replace(/\/$/, '');
   return async (system: string, messages: ChatTurn[], tools: ToolSpec[]): Promise<ModelReply> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12_000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
@@ -27,7 +32,10 @@ export function modelFromEnv(): ModelFn | null {
           ...(tools.length ? { tools: tools.map((t) => ({ type: 'function', function: t })), tool_choice: 'auto' } : {}),
         }),
       });
-      if (!res.ok) throw new Error(`model HTTP ${res.status}`);
+      if (!res.ok) {
+        const detail = (await res.text().catch(() => '')).slice(0, 200).replace(/\s+/g, ' ');
+        throw new Error(`model HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
+      }
       const data = (await res.json()) as {
         choices: { message: { content: string | null; tool_calls?: { function: { name: string; arguments: string } }[] } }[];
       };

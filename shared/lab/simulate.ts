@@ -91,7 +91,7 @@ export function parseConversation(conv: string): { history: ChatTurn[]; last: st
   return { history: turns, last: last?.content ?? conv };
 }
 
-type Deps = { nb: NaiveBayesModel | null; model?: ModelFn | null };
+type Deps = { nb: NaiveBayesModel | null; model?: ModelFn | null; onStep?: () => void };
 
 async function reply(text: string, history: ChatTurn[], reassurance: ReassuranceEvent[], now: number, deps: Deps) {
   const ctx: AgentContext = { lang: 'en', careLevel: 2, reassurance, history, now };
@@ -103,6 +103,7 @@ export async function runPartB(deps: Deps): Promise<PartBResult[]> {
   for (const t of CHAT_TASKS) {
     const { history, last } = parseConversation(t.conversation);
     const res = await reply(last, history, [], Date.now(), deps);
+    deps.onStep?.();
     const checks = gradeReply(t.id, t.checks, res.reply);
     out.push({
       task: t.id, pair: t.pair, isControl: t.id.includes('control'), why: t.why_hard,
@@ -125,6 +126,7 @@ export async function runPartC(deps: Deps): Promise<PartCResult[]> {
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
       const res = await reply(msg.text, convo, reassurance, now, deps);
+      deps.onStep?.();
       // Mirror the app: a declined reassurance request is logged as an event.
       if (res.actions.some((a) => a.type === 'DECLINE_REASSURANCE')) reassurance.push({ at: now, text: msg.text });
       convo.push({ role: 'user', content: msg.text }, { role: 'assistant', content: res.reply });

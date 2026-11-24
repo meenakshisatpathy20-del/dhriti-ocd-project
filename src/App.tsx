@@ -26,6 +26,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Research = lazy(() => import('./pages/Research'));
 const Lab = lazy(() => import('./pages/Lab'));
+const LabRun = lazy(() => import('./pages/LabRun'));
 
 const NAV: { to: string; label: string; icon: ComponentType<{ className?: string }>; section?: string }[] = [
   { to: '/', label: 'Talk to Dhriti', icon: I.Home, section: 'Companion' },
@@ -73,7 +74,7 @@ export default function App() {
   useEffect(() => { document.documentElement.lang = data.profile.lang; }, [data.profile.lang]);
 
   const proRoute = loc.pathname.startsWith('/pro') || loc.pathname.startsWith('/admin');
-  if (!data.profile.onboarded && !proRoute && loc.pathname !== '/research' && loc.pathname !== '/lab') {
+  if (!data.profile.onboarded && !proRoute && loc.pathname !== '/research' && !loc.pathname.startsWith('/lab')) {
     return (
       <>
         <DoodleSky calm={data.profile.calm} />
@@ -123,6 +124,7 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/research" element={<Research />} />
               <Route path="/lab" element={<Lab />} />
+              <Route path="/lab/runs/:id" element={<LabRun />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

@@ -29,7 +29,7 @@ OCD urges and panic strike when hands are wet, busy or shaking. Typing is the on
 | **Lessons** | 9 psychoeducation lessons (OCD, the cycle, ERP, reassurance, intrusive thoughts, family, panic, treatment, relapse), read aloud, voice quiz | ✓ |
 | **Voice diary & report** | Private spoken diary; 14-day report with Y-BOCS trend, peak-anxiety trend, outcomes; printable PDF; shared only with consent | ✓ |
 | **Professional marketplace** | KYC onboarding (council, registration number, qualification, certificate upload); human verification console; booking online/offline; patient-doctor chat; consented report sharing | Chat works with dictation |
-| **Safety Lab (OCD-EVAL)** | Our OCD-EVAL benchmark as a working tool: study results; Dhriti's own results; **grade any chatbot** by pasting its reply; a copy-paste **five-turn pressure test**; **run any connected model** raw (study prompt) or behind Dhriti's safety layer; export in OCD-EVAL transcript format for the study's LLM judge | – |
+| **Safety Lab (OCD-EVAL platform)** | Our OCD-EVAL benchmark as an open evaluation lab: **test any model** with your own API key (OpenAI, Gemini, Groq, OpenRouter, any OpenAI-compatible API; key never stored) raw and behind Dhriti's safety layer; a **guided copy-paste wizard** for any chatbot (6 or 21 replies); **saved, shareable reports**; a **leaderboard** next to the published study; quick single-reply check; exports in OCD-EVAL transcript format | – |
 | **Wispr Flow mode** | Every text box is dictation-ready; a global mode switches all input to text boxes for Wispr Flow | See [docs/WISPR_FLOW.md](docs/WISPR_FLOW.md) |
 | **Privacy & calm** | Data stays on the device; Quiet mode for shared homes; calm visuals; export / delete all data; works offline (service worker) | – |
 | **Warm design** | Doodled cosmos, Tara the star mascot (bobs, blinks, listens, celebrates), orbiting planets round the mic, sound bars, star-burst celebrations, breathing ring; all motion stops in calm mode | – |
@@ -58,7 +58,7 @@ Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | **ML pipeline** on the public OCD patient dataset (1,500 records): audit → train → cross-validate → export | `npm run ml` | [ml/reports/REPORT.md](ml/reports/REPORT.md) |
 | **OCD-Eval (intent)**: does Dhriti understand what people say? 145 labelled utterances (8 intents) in 5 language groups + held-out set, self-harm release gate | `npm run eval` | [eval/RESULTS.md](eval/RESULTS.md) |
 | **Safety Lab (OCD-EVAL behaviour)**: Dhriti's agent vs. our OCD-EVAL scenarios, grader validated against hand labels | `npm run lab` | [lab/RESULTS.md](lab/RESULTS.md) |
-| **Unit tests** (54) | `npm test` | – |
+| **Unit tests** (57) | `npm test` | – |
 
 ### Key findings (honest)
 

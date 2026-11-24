@@ -15,6 +15,7 @@ import { db, hashKey, newId, newKey, nextSlots, publicProfessional, save, type B
 import { modelFromEnv, modelInfo } from './llm';
 import { runLab } from '../shared/lab/simulate';
 import { runRawModel } from '../shared/lab/raw';
+import { labRouter } from './lab';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 try {
@@ -121,6 +122,8 @@ app.post('/api/lab/run', async (req, res) => {
     labBusy = false;
   }
 });
+
+app.use('/api/lab', labRouter(nb));
 
 // ---------- Professionals: public directory ----------
 

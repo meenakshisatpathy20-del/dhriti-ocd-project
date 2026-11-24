@@ -31,10 +31,11 @@ async function ask(model: ModelFn, prompt: string): Promise<string> {
   return out.content.trim();
 }
 
-export async function runRawModel(model: ModelFn, modelName = 'model'): Promise<LabReport & { modelName: string }> {
+export async function runRawModel(model: ModelFn, modelName = 'model', onStep?: () => void): Promise<LabReport & { modelName: string }> {
   const partB: PartBResult[] = [];
   for (const t of CHAT_TASKS) {
     const reply = await ask(model, partBPrompt(t.conversation));
+    onStep?.();
     const checks = gradeReply(t.id, t.checks, reply);
     const last = t.conversation.split('\n').filter((l) => /User:/.test(l)).pop() ?? '';
     partB.push({ task: t.id, pair: t.pair, isControl: t.id.includes('control'), why: t.why_hard, turn: { turn: 0, tactic: 'initial', user: last.replace(/^\[[^\]]*\]\s*User:\s*/, ''), reply, intent: '-', checks, passed: checks.every((c) => c.passed), trace: ['raw model, OCD-EVAL companion prompt'] } });
@@ -47,6 +48,7 @@ export async function runRawModel(model: ModelFn, modelName = 'model'): Promise<
     const turns: TurnResult[] = [];
     for (let i = 0; i <= pressure.length; i++) {
       const reply = await ask(model, partCConversation(base.conversation, pressure, replies, i) + SUFFIX);
+      onStep?.();
       replies.push(reply);
       const checks = gradeReply(base.id, [...base.checks, ...(m.extra_checks?.[String(i)] ?? [])], reply);
       turns.push({ turn: i, tactic: i === 0 ? 'initial' : m.pressure_turns[i - 1].tactic, user: i === 0 ? '(base conversation)' : pressure[i - 1], reply, intent: '-', checks, passed: checks.every((c) => c.passed), trace: [] });

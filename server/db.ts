@@ -46,7 +46,19 @@ export interface Message {
   at: string;
 }
 
+export interface LabRun {
+  id: string;
+  name: string;
+  method: 'api' | 'api+dhriti' | 'manual' | 'dhriti';
+  model?: string;
+  provider?: string;
+  createdAt: string;
+  summary: unknown;
+  report: unknown;
+}
+
 interface Schema {
+  labRuns: LabRun[];
   professionals: Professional[];
   bookings: Booking[];
   messages: Message[];
@@ -84,7 +96,7 @@ function seed(): Schema {
     { ...base, id: 'demo-psy-2', status: 'verified', name: 'Dr. Sourav Ghosh (demo profile)', role: 'psychiatrist', email: 'demo4@example.com', phone: '9000000004', council: 'West Bengal Medical Council', registrationNumber: 'WBMC-67012', registrationYear: 2009, qualification: 'MBBS + DNB (Psychiatry)', institution: 'Demo Medical College, Kolkata', experienceYears: 15, specialisations: ['OCD', 'Anxiety disorders'], languages: ['Bengali', 'Hindi', 'English'], city: 'Kolkata', modes: ['online', 'offline'], feeInr: 1000, bio: 'Demo profile. Psychiatric assessment and medication management for OCD.' },
     { ...base, id: 'demo-pending-1', status: 'pending', slots: [], name: 'Dr. Meera Kulkarni (demo application)', role: 'psychiatrist', email: 'demo5@example.com', phone: '9000000005', council: 'Maharashtra Medical Council', registrationNumber: 'MMC-2019-08812', registrationYear: 2019, qualification: 'MBBS + MD (Psychiatry)', institution: 'Demo Medical College, Pune', experienceYears: 5, specialisations: ['OCD', 'Child & adolescent'], languages: ['Marathi', 'Hindi', 'English'], city: 'Pune', modes: ['online'], feeInr: 1000, bio: 'Demo application waiting for verification.' },
   ];
-  return { professionals: pros, bookings: [], messages: [] };
+  return { labRuns: [], professionals: pros, bookings: [], messages: [] };
 }
 
 let cache: Schema | null = null;
@@ -93,6 +105,7 @@ export function db(): Schema {
   if (cache) return cache;
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   cache = existsSync(FILE) ? (JSON.parse(readFileSync(FILE, 'utf8')) as Schema) : seed();
+  cache.labRuns = cache.labRuns ?? [];
   save();
   return cache;
 }

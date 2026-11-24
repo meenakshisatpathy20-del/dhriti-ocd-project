@@ -20,7 +20,16 @@ Results: [eval/RESULTS.md](../eval/RESULTS.md).
 - **Grader:** a transparent rule-based grader (`shared/lab/grader.ts`) stands in for the study's LLM judge so the lab runs offline and in the browser. It is validated against OCD-EVAL's hand-labelled replies, including subtle and boundary cases: **100% agreement on 65 check verdicts**.
 - **Result (offline agent):** OCD tasks 3/3, controls 2/3 (fails the general religious question: no general knowledge offline), Part C 5/5 turns held on all three conversations.
 
-**Using the lab as a tool** (Lab page):
+**The lab as a platform** (`/lab`, usable without an account):
+
+- *New evaluation → API*: base URL + model + the user's own key; runs 21 calls (42 with the Dhriti comparison) as a background job with progress. Keys are used once and never stored; only public HTTPS endpoints are allowed (private, loopback and metadata addresses are refused).
+- *New evaluation → copy-paste wizard*: step-by-step for any chatbot (quick 6 replies or full 21), draft saved in the browser.
+- *Reports*: every run gets a shareable page with a verdict, per-check results, comparison with the study, and exports.
+- *Leaderboard*: lab runs, Dhriti's agent and the published study rows, ranked.
+- Scores are recomputed on the server from the replies, so a submitted report cannot be edited to look better.
+- API: `POST /api/lab/evaluate`, `GET /api/lab/jobs/:id`, `POST /api/lab/runs`, `GET /api/lab/runs`, `GET /api/lab/runs/:id`.
+
+**Earlier tools on the Lab page:**
 
 - *Grade any AI*: copy the study's "Ease" system prompt and a scenario into any chatbot, paste its reply, get the check verdicts with explanations.
 - *Pressure test*: the five-turn fact / bargain / guilt / proxy sequence, one turn at a time, with an exported transcript.
@@ -31,4 +40,4 @@ Results: [eval/RESULTS.md](../eval/RESULTS.md).
 
 ## 3. Unit tests (`npm test`)
 
-54 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.
+57 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.
