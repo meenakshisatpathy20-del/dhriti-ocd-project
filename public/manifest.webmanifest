@@ -1,0 +1,11 @@
+{
+  "name": "Dhriti",
+  "short_name": "Dhriti",
+  "description": "A voice-first OCD companion",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1026",
+  "theme_color": "#0B1026",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }],
+  "shortcuts": [{ "name": "Panic SOS", "url": "/panic" }, { "name": "I have an urge", "url": "/coach" }]
+}

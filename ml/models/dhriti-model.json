@@ -1,0 +1,1003 @@
+{
+  "name": "dhriti-ocd-model",
+  "version": "1.0.0",
+  "dataset": {
+    "source": "OCD Patient Dataset: Demographics & Clinical Data (Kaggle, 1,500 records; public mirror on GitHub)",
+    "sha256": "dc6bd23c61f1e3ae2c57ddd7e4c408b7e2805b260ef0f44c35e590644ea6d2c5",
+    "rows": 1500,
+    "validRows": 419,
+    "syntheticSuspected": true
+  },
+  "audit": {
+    "verdict": "FAIL: dataset violates Y-BOCS scoring rules and shows no clinically expected relationships. It is treated as a synthetic demonstration dataset: suitable for exercising the pipeline, NOT for deriving clinical rules.",
+    "checks": [
+      {
+        "name": "Schema: required columns present",
+        "passed": true,
+        "detail": "16/16 columns"
+      },
+      {
+        "name": "Completeness: no blank required fields",
+        "passed": true,
+        "detail": "0 rows with blanks"
+      },
+      {
+        "name": "Uniqueness: Patient ID",
+        "passed": false,
+        "detail": "107 duplicates"
+      },
+      {
+        "name": "Clinical range: Y-BOCS obsession subscale 0-20",
+        "passed": false,
+        "detail": "717 rows (47.8%) exceed 20; max observed 40"
+      },
+      {
+        "name": "Clinical range: Y-BOCS compulsion subscale 0-20",
+        "passed": false,
+        "detail": "722 rows (48.1%) exceed 20; max observed 40"
+      },
+      {
+        "name": "Clinical range: Y-BOCS total 0-40",
+        "passed": false,
+        "detail": "720 rows (48.0%) exceed 40"
+      },
+      {
+        "name": "Plausibility: adults (18+)",
+        "passed": true,
+        "detail": "age range 18-75"
+      },
+      {
+        "name": "Construct validity: obsession and compulsion subscales correlate positively",
+        "passed": false,
+        "detail": "Pearson r = 0.031 (clinical samples show a clear positive relationship)"
+      },
+      {
+        "name": "Construct validity: contamination obsessions linked to washing",
+        "passed": false,
+        "detail": "P(washing | contamination) = 21.6% vs P(washing) = 21.4%"
+      }
+    ]
+  },
+  "clinicalUse": "NONE. Clinical routing uses published thresholds (OCI-R >= 21; Y-BOCS bands; 35% response). These models are research artefacts.",
+  "cohort": {
+    "totals": [
+      1,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      19,
+      19,
+      19,
+      19,
+      19,
+      19,
+      19,
+      19,
+      19,
+      19,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      24,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      29,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      31,
+      31,
+      31,
+      31,
+      31,
+      31,
+      32,
+      32,
+      32,
+      32,
+      32,
+      33,
+      33,
+      33,
+      33,
+      33,
+      33,
+      34,
+      34,
+      34,
+      34,
+      34,
+      34,
+      34,
+      35,
+      35,
+      35,
+      35,
+      35,
+      35,
+      35,
+      35,
+      36,
+      36,
+      36,
+      36,
+      36,
+      37,
+      37,
+      37,
+      37,
+      37,
+      38,
+      38,
+      38,
+      38,
+      38,
+      38,
+      39,
+      39,
+      39,
+      39,
+      40
+    ],
+    "bandCounts": {
+      "subclinical": 39,
+      "mild": 92,
+      "moderate": 141,
+      "severe": 100,
+      "extreme": 47
+    }
+  },
+  "tasks": [
+    {
+      "task": "Comorbid depression",
+      "target": "Depression Diagnosis = Yes",
+      "auc": 0.439,
+      "aucCi": [
+        0.388,
+        0.494
+      ],
+      "accuracy": 0.456,
+      "baselineAccuracy": 0.508,
+      "macroF1": 0.456,
+      "positiveRate": 0.508,
+      "topFeatures": [
+        {
+          "feature": "Compulsion Type=Ordering",
+          "weight": 0.49
+        },
+        {
+          "feature": "Marital Status=Single",
+          "weight": -0.31
+        },
+        {
+          "feature": "Compulsion Type=Praying",
+          "weight": 0.285
+        },
+        {
+          "feature": "Previous Diagnoses=PTSD",
+          "weight": 0.266
+        },
+        {
+          "feature": "Obsession Type=Religious",
+          "weight": 0.255
+        },
+        {
+          "feature": "Education Level=Graduate Degree",
+          "weight": -0.237
+        }
+      ],
+      "interpretation": "AUC is below 0.5. With no real signal, cross-validation commonly produces slightly-below-chance scores; this means the features carry no information about the target.",
+      "encoder": {
+        "numeric": [
+          "Age",
+          "Duration of Symptoms (months)"
+        ],
+        "categorical": {
+          "Gender": [
+            "Female",
+            "Male"
+          ],
+          "Marital Status": [
+            "Divorced",
+            "Married",
+            "Single"
+          ],
+          "Education Level": [
+            "College Degree",
+            "Graduate Degree",
+            "High School",
+            "Some College"
+          ],
+          "Previous Diagnoses": [
+            "GAD",
+            "MDD",
+            "None",
+            "PTSD",
+            "Panic Disorder"
+          ],
+          "Family History of OCD": [
+            "No",
+            "Yes"
+          ],
+          "Obsession Type": [
+            "Contamination",
+            "Harm-related",
+            "Hoarding",
+            "Religious",
+            "Symmetry"
+          ],
+          "Compulsion Type": [
+            "Checking",
+            "Counting",
+            "Ordering",
+            "Praying",
+            "Washing"
+          ],
+          "Anxiety Diagnosis": [
+            "No",
+            "Yes"
+          ],
+          "Medications": [
+            "Benzodiazepine",
+            "None",
+            "SNRI",
+            "SSRI"
+          ]
+        },
+        "means": {
+          "Age": 47.17183770883055,
+          "Duration of Symptoms (months)": 115.33890214797135
+        },
+        "stds": {
+          "Age": 16.91080261464588,
+          "Duration of Symptoms (months)": 67.99733035428844
+        }
+      },
+      "weights": [
+        [
+          0.034,
+          0.018,
+          -0.003,
+          -0.085,
+          -0.039,
+          0.155,
+          0.118,
+          -0.081,
+          0.015,
+          0.062,
+          0.118,
+          -0.133,
+          0.008,
+          0.034,
+          0.033,
+          -0.111,
+          -0.127,
+          -0.09,
+          -0.015,
+          -0.245,
+          -0.142,
+          -0.047,
+          0.043,
+          0.053,
+          -0.001,
+          0.056
+        ],
+        [
+          -0.034,
+          -0.018,
+          0.003,
+          0.085,
+          0.039,
+          -0.155,
+          -0.118,
+          0.081,
+          -0.015,
+          -0.062,
+          -0.118,
+          0.133,
+          -0.008,
+          -0.034,
+          -0.033,
+          0.111,
+          0.127,
+          0.09,
+          0.015,
+          0.245,
+          0.142,
+          0.047,
+          -0.043,
+          -0.053,
+          0.001,
+          -0.056
+        ]
+      ],
+      "classes": [
+        "no",
+        "yes"
+      ]
+    },
+    {
+      "task": "Moderate-or-worse severity from history",
+      "target": "Y-BOCS total >= 16",
+      "auc": 0.583,
+      "aucCi": [
+        0.528,
+        0.635
+      ],
+      "accuracy": 0.666,
+      "baselineAccuracy": 0.687,
+      "macroF1": 0.488,
+      "positiveRate": 0.687,
+      "topFeatures": [
+        {
+          "feature": "Gender=Male",
+          "weight": -0.576
+        },
+        {
+          "feature": "Education Level=High School",
+          "weight": 0.548
+        },
+        {
+          "feature": "Anxiety Diagnosis=Yes",
+          "weight": -0.489
+        },
+        {
+          "feature": "Previous Diagnoses=PTSD",
+          "weight": -0.487
+        },
+        {
+          "feature": "Compulsion Type=Washing",
+          "weight": -0.453
+        },
+        {
+          "feature": "Compulsion Type=Praying",
+          "weight": 0.439
+        }
+      ],
+      "interpretation": "A weak ranking signal (AUC CI above 0.5), but accuracy does not beat always predicting the majority class, so it has no practical value. Dhriti does not use it for clinical decisions.",
+      "encoder": {
+        "numeric": [
+          "Age",
+          "Duration of Symptoms (months)"
+        ],
+        "categorical": {
+          "Gender": [
+            "Female",
+            "Male"
+          ],
+          "Marital Status": [
+            "Divorced",
+            "Married",
+            "Single"
+          ],
+          "Education Level": [
+            "College Degree",
+            "Graduate Degree",
+            "High School",
+            "Some College"
+          ],
+          "Previous Diagnoses": [
+            "GAD",
+            "MDD",
+            "None",
+            "PTSD",
+            "Panic Disorder"
+          ],
+          "Family History of OCD": [
+            "No",
+            "Yes"
+          ],
+          "Obsession Type": [
+            "Contamination",
+            "Harm-related",
+            "Hoarding",
+            "Religious",
+            "Symmetry"
+          ],
+          "Compulsion Type": [
+            "Checking",
+            "Counting",
+            "Ordering",
+            "Praying",
+            "Washing"
+          ],
+          "Anxiety Diagnosis": [
+            "No",
+            "Yes"
+          ],
+          "Medications": [
+            "Benzodiazepine",
+            "None",
+            "SNRI",
+            "SSRI"
+          ]
+        },
+        "means": {
+          "Age": 47.17183770883055,
+          "Duration of Symptoms (months)": 115.33890214797135
+        },
+        "stds": {
+          "Age": 16.91080261464588,
+          "Duration of Symptoms (months)": 67.99733035428844
+        }
+      },
+      "weights": [
+        [
+          -0.561,
+          -0.009,
+          -0.042,
+          0.288,
+          -0.086,
+          -0.164,
+          -0.047,
+          -0.274,
+          0.094,
+          -0.148,
+          -0.124,
+          0.244,
+          -0.217,
+          -0.055,
+          -0.06,
+          0.012,
+          0.125,
+          0.087,
+          0.179,
+          0.157,
+          -0.22,
+          0.226,
+          0.245,
+          0.003,
+          -0.126,
+          0.116
+        ],
+        [
+          0.561,
+          0.009,
+          0.042,
+          -0.288,
+          0.086,
+          0.164,
+          0.047,
+          0.274,
+          -0.094,
+          0.148,
+          0.124,
+          -0.244,
+          0.217,
+          0.055,
+          0.06,
+          -0.012,
+          -0.125,
+          -0.087,
+          -0.179,
+          -0.157,
+          0.22,
+          -0.226,
+          -0.245,
+          -0.003,
+          0.126,
+          -0.116
+        ]
+      ],
+      "classes": [
+        "no",
+        "yes"
+      ]
+    }
+  ],
+  "obsessionCompulsion": {
+    "obsTypes": [
+      "Contamination",
+      "Harm-related",
+      "Hoarding",
+      "Religious",
+      "Symmetry"
+    ],
+    "compTypes": [
+      "Checking",
+      "Counting",
+      "Ordering",
+      "Praying",
+      "Washing"
+    ],
+    "table": [
+      [
+        20,
+        14,
+        17,
+        19,
+        19
+      ],
+      [
+        21,
+        12,
+        20,
+        19,
+        16
+      ],
+      [
+        14,
+        20,
+        17,
+        14,
+        18
+      ],
+      [
+        17,
+        15,
+        12,
+        15,
+        18
+      ],
+      [
+        18,
+        22,
+        13,
+        11,
+        18
+      ]
+    ],
+    "conditional": {
+      "Contamination": {
+        "Checking": 0.223,
+        "Counting": 0.16,
+        "Ordering": 0.191,
+        "Praying": 0.213,
+        "Washing": 0.213
+      },
+      "Harm-related": {
+        "Checking": 0.237,
+        "Counting": 0.14,
+        "Ordering": 0.226,
+        "Praying": 0.215,
+        "Washing": 0.183
+      },
+      "Hoarding": {
+        "Checking": 0.17,
+        "Counting": 0.239,
+        "Ordering": 0.205,
+        "Praying": 0.17,
+        "Washing": 0.216
+      },
+      "Religious": {
+        "Checking": 0.22,
+        "Counting": 0.195,
+        "Ordering": 0.159,
+        "Praying": 0.195,
+        "Washing": 0.232
+      },
+      "Symmetry": {
+        "Checking": 0.218,
+        "Counting": 0.264,
+        "Ordering": 0.161,
+        "Praying": 0.138,
+        "Washing": 0.218
+      }
+    },
+    "chi2": 10.734,
+    "dof": 16,
+    "pValue": 0.826,
+    "cramersV": 0.08
+  },
+  "profiles": {
+    "features": [
+      "Y-BOCS obsessions",
+      "Y-BOCS compulsions",
+      "Duration (months)",
+      "Age"
+    ],
+    "k": 5,
+    "silhouette": 0.207,
+    "candidates": [
+      {
+        "k": 2,
+        "silhouette": 0.188
+      },
+      {
+        "k": 3,
+        "silhouette": 0.187
+      },
+      {
+        "k": 4,
+        "silhouette": 0.205
+      },
+      {
+        "k": 5,
+        "silhouette": 0.207
+      }
+    ],
+    "centroids": [
+      [
+        10.4,
+        5.8,
+        172.4,
+        63.6
+      ],
+      [
+        4.4,
+        10.5,
+        165.5,
+        33.9
+      ],
+      [
+        6.6,
+        13.4,
+        61.5,
+        60.8
+      ],
+      [
+        16.1,
+        15.3,
+        130.6,
+        43.1
+      ],
+      [
+        11.4,
+        4.4,
+        60.5,
+        35.4
+      ]
+    ],
+    "sizes": [
+      82,
+      68,
+      79,
+      94,
+      96
+    ],
+    "means": [
+      10.217,
+      9.807,
+      115.339,
+      47.172
+    ],
+    "stds": [
+      6.217,
+      6.109,
+      67.997,
+      16.911
+    ]
+  }
+}
