@@ -121,6 +121,10 @@ docs/        architecture, clinical basis, ML, evaluation, Wispr Flow, ethics & 
 
 ## Documentation
 
+- **[Full presentation guide (PDF)](docs/Dhriti_Full_Presentation_Guide.pdf)**: 15-20 minute script, explanations, demo runbook, viva Q&A
+- [Quick revision guide (PDF)](docs/Dhriti_Quick_Revision_Guide.pdf)
+- [Deploy on Azure](docs/DEPLOY_AZURE.md)
+
 - [Architecture](docs/ARCHITECTURE.md)
 - [Clinical basis](docs/CLINICAL.md)
 - [ML pipeline](docs/ML.md)
