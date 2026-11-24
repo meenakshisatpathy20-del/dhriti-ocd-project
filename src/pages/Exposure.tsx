@@ -51,8 +51,9 @@ function room(scene: THREE.Scene, wall: string, floor: THREE.Texture) {
   fl.rotation.x = -Math.PI / 2;
   fl.position.y = -0.99;
   scene.add(fl);
-  scene.add(new THREE.HemisphereLight('#dfe8ff', '#3a2f28', 0.9));
-  const l = new THREE.PointLight('#fff2d6', 1.2, 30);
+  scene.add(new THREE.HemisphereLight('#ffffff', '#8a7a6a', 2.4));
+  scene.add(new THREE.AmbientLight('#fff4ea', 0.8));
+  const l = new THREE.PointLight('#fff2d6', 40, 30);
   l.position.set(0, 4, 0);
   scene.add(l);
 }
@@ -128,6 +129,72 @@ const SCENES: SceneDef[] = [
       for (let i = 0; i < 6; i++) s.add(box(3, 0.25, 0.8, '#8c8c8c', 0, -0.9 + i * 0.3, 3 + i * 0.6));
     },
   },
+  {
+    id: 'knife',
+    title: 'Kitchen counter with a knife',
+    theme: 'Harm OCD',
+    steps: [
+      'Look at the kitchen. A knife is lying on the counter.',
+      'Look directly at the knife. Notice the thought "what if I…" and let it stay.',
+      'Imagine picking up the knife and chopping vegetables for dinner.',
+      'Imagine someone you love walking into the kitchen while you hold it, and carrying on cooking.',
+      'Say: "This is the OCD talking. Thoughts are not actions." Stay with the anxiety.',
+    ],
+    build: (s) => {
+      room(s, '#f3dcc4', noiseTexture('#9a7b5f', '#7a5e46', 150));
+      s.add(box(6, 1.8, 1.2, '#8b6b52', 0, -0.1, -5.3));
+      s.add(box(6, 0.12, 1.3, '#e9e4dc', 0, 0.85, -5.3));
+      const blade = box(0.9, 0.03, 0.14, '#d9dde1', 0.4, 0.93, -5.1); blade.rotation.y = 0.4; s.add(blade);
+      const handle = box(0.45, 0.07, 0.12, '#2b1d14', -0.25, 0.94, -4.85); handle.rotation.y = 0.4; s.add(handle);
+      s.add(box(0.5, 0.25, 0.5, '#e66b3f', -1.6, 1.05, -5.3));
+      s.add(box(0.35, 0.35, 0.35, '#7fbf5a', 1.8, 1.08, -5.3));
+    },
+  },
+  {
+    id: 'symmetry',
+    title: 'A crooked bookshelf',
+    theme: 'Symmetry / "just right"',
+    steps: [
+      'Look at the bookshelf. Some books lean, and the picture frame is tilted.',
+      'Look at the most crooked book. Notice the urge to straighten it.',
+      'Keep looking for one minute without fixing anything.',
+      'Imagine leaving the room with everything exactly as it is.',
+      'Imagine it staying like this until tomorrow.',
+    ],
+    build: (s) => {
+      room(s, '#d9e8f5', noiseTexture('#a7a19a', '#8b857e', 120));
+      s.add(box(3.2, 3.2, 0.6, '#9c6b43', 0, 0.6, -5.6));
+      [0.0, 1.0, 2.0].forEach((sh) => s.add(box(3.0, 0.08, 0.55, '#7a5233', 0, -0.4 + sh, -5.5)));
+      const colors = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#ff7ab6'];
+      for (let i = 0; i < 12; i++) {
+        const bk = box(0.16, 0.6 + (i % 3) * 0.08, 0.4, colors[i % colors.length], -1.2 + i * 0.21, -0.05 + (i > 5 ? 1 : 0), -5.45);
+        bk.rotation.z = i % 4 === 1 ? 0.35 : i % 5 === 2 ? -0.2 : 0;
+        s.add(bk);
+      }
+      const frame = box(1.2, 0.9, 0.06, '#f5d6a0', 2.8, 1.8, -5.9); frame.rotation.z = 0.18; s.add(frame);
+    },
+  },
+  {
+    id: 'prayer',
+    title: 'A quiet prayer room',
+    theme: 'Religious / scrupulosity',
+    steps: [
+      'Look around the prayer room: the lamp, the flowers, the place to sit.',
+      'Notice any unwanted thought that comes. Do not push it away.',
+      'Imagine an upsetting thought arriving during prayer.',
+      'Stay seated without repeating the prayer or asking for forgiveness.',
+      'Say: "This is the OCD, not my faith." Let the doubt stay unanswered.',
+    ],
+    build: (s) => {
+      room(s, '#fbe3c4', noiseTexture('#c9a27a', '#b38a62', 90));
+      s.add(box(2.6, 0.9, 1.0, '#8b3a3a', 0, -0.55, -5.3));
+      s.add(box(1.4, 1.6, 0.2, '#f2c14e', 0, 0.9, -5.85));
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), new THREE.MeshStandardMaterial({ color: '#ffb347', emissive: '#ff8c1a', emissiveIntensity: 1.2 }));
+      lamp.position.set(0.7, 0.0, -5.0); s.add(lamp);
+      [-0.8, -0.5, 0.5, 0.8].forEach((x) => s.add(box(0.18, 0.18, 0.18, '#ff7ab6', x, 0.0, -5.0)));
+      s.add(box(2.0, 0.08, 1.4, '#c0392b', 0, -0.95, -2.5));
+    },
+  },
 ];
 
 export default function Exposure() {
@@ -141,6 +208,9 @@ export default function Exposure() {
   const [suds, setSuds] = useState<{ x: number; y: number }[]>([]);
   const [heard, setHeard] = useState('');
   const [xr, setXr] = useState(false);
+  const [gyro, setGyro] = useState(false);
+  const gyroRef = useRef(false);
+  gyroRef.current = gyro;
   const def = SCENES.find((s) => s.id === sceneId)!;
   const t0 = useRef(0);
   const sudsRef = useRef<{ x: number; y: number }[]>([]);
@@ -176,10 +246,11 @@ export default function Exposure() {
       yaw = THREE.MathUtils.degToRad(e.alpha);
       pitch = THREE.MathUtils.degToRad(Math.max(-60, Math.min(60, (e.beta ?? 90) - 90)));
     };
+    renderer.domElement.style.touchAction = 'none';
     renderer.domElement.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-    window.addEventListener('deviceorientation', orient);
+    if (gyroRef.current) window.addEventListener('deviceorientation', orient);
     const resize = () => {
       camera.aspect = el.clientWidth / el.clientHeight;
       camera.updateProjectionMatrix();
@@ -206,7 +277,7 @@ export default function Exposure() {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [def]);
+  }, [def, gyro]);
 
   // Voice controller during a session.
   useEffect(() => {
@@ -283,8 +354,13 @@ export default function Exposure() {
           <h3>{def.steps[step]}</h3>
           {heard && <small className="faint">Heard: "{heard}"</small>}
           <div className="row">
-            {!active ? <button className="btn primary" onClick={begin} disabled={careLevel === 4}>Begin practice</button> : <button className="btn" onClick={nextStep}>Next step</button>}
+            {!active ? <button className="btn primary" onClick={begin}>Begin practice</button> : <button className="btn" onClick={nextStep}>Next step</button>}
             {active && <button className="btn ghost" onClick={end}>Stop</button>}
+            <button className={`btn ${gyro ? 'primary' : ''}`} onClick={async () => {
+              const D = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
+              if (!gyro && D.requestPermission) { try { if ((await D.requestPermission()) !== 'granted') return; } catch { return; } }
+              setGyro(!gyro);
+            }}>{gyro ? '📱 Motion on' : '📱 Look by moving phone'}</button>
             {xr && <button className="btn" onClick={() => (host.current as HTMLDivElement & { enterVr?: () => void })?.enterVr?.()}>Enter VR</button>}
           </div>
           {active && (
