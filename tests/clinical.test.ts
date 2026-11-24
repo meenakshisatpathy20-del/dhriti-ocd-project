@@ -67,3 +67,22 @@ describe('professional KYC', () => {
     expect(validateKyc({ ...good, registrationYear: 2024, experienceYears: 20 }, true).some((i) => i.field === 'experienceYears')).toBe(true);
   });
 });
+
+import { adjustForMood, scoreMood } from '../shared/clinical/instruments';
+
+describe('mood check (PHQ-2 + item 9)', () => {
+  const mild = routeCare(null, scoreYbocs([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]));
+  it('raises care for low mood', () => {
+    const r = adjustForMood(mild, scoreMood([2, 1, 0]));
+    expect(r.level).toBe(3);
+    expect(r.referToProfessional).toBe(true);
+  });
+  it('any self-harm answer means urgent professional support', () => {
+    const r = adjustForMood(mild, scoreMood([0, 0, 1]));
+    expect(r.level).toBe(4);
+    expect(r.recommendation).toMatch(/14416/);
+  });
+  it('leaves routing alone when mood is fine', () => {
+    expect(adjustForMood(mild, scoreMood([0, 1, 0]))).toEqual(mild);
+  });
+});

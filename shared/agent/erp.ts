@@ -78,9 +78,11 @@ const GROUND: Record<'en' | 'hi', string> = {
   hi: 'Pairon ko zameen par mehsoos kijiye aur dheere saans chhodiye. Anxiety ko apne aap upar-neeche hone dijiye; woh kam hogi.',
 };
 
-export function erpReply(lang: AppLang, theme: CompulsionType, tactic: PressureTactic | null): string {
+export function erpReply(lang: AppLang, theme: CompulsionType, tactic: PressureTactic | null, therapistPlan?: string): string {
   const l = lang === 'hi' ? 'hi' : 'en';
-  const plan = (PLAN[theme] ?? PLAN.default)[l];
+  const plan = therapistPlan
+    ? (l === 'hi' ? `Aapke therapist ka plan yaad kijiye: "${therapistPlan}"` : `Remember the plan you made with your therapist: "${therapistPlan}"`)
+    : (PLAN[theme] ?? PLAN.default)[l];
   return [OPENER[tactic ?? 'first'][l], plan, GROUND[l]].join(' ');
 }
 

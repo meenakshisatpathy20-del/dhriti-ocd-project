@@ -6,6 +6,7 @@ import { speak, Recognizer, recognitionSupported } from '../lib/speech';
 import { useAgentActions } from '../hooks/useActions';
 import { VoiceInput } from '../components/VoiceInput';
 import * as I from '../components/Icons';
+import { Mascot } from '../components/Mascot';
 import { countToday } from '../../shared/nlp/reassurance';
 import { tokens, containsPhrase } from '../../shared/nlp/normalize';
 import type { VoiceUtterance } from '../hooks/useVoice';
@@ -22,6 +23,9 @@ export default function Home() {
   const [wake, setWake] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const { profile } = data;
+  const hi = profile.lang === 'hi';
+  const lastReply = [...data.chat].reverse().find((m) => m.role === 'assistant');
+  const daysSinceScreen = latestScreening ? (Date.now() - Date.parse(latestScreening.at)) / 86400000 : null;
 
   // Optional hands-free wake phrase: listens continuously while Home is open.
   useEffect(() => {
@@ -48,6 +52,7 @@ export default function Home() {
       lang: profile.lang,
       careLevel,
       name: profile.name,
+      plan: profile.carePlan?.text,
       reassurance: data.reassurance.slice(-20),
       history: data.chat.slice(-8),
     });
@@ -76,17 +81,21 @@ export default function Home() {
   return (
     <div>
       <div className="page-head spread">
-        <div>
+        <div className="hello">
+          <Mascot mood={busy ? 'listening' : 'happy'} size={92} />
+          <div>
           <div className="kicker">Namaste{profile.name ? `, ${profile.name}` : ''}</div>
-          <h1>What's happening right now?</h1>
-          <p className="muted" style={{ margin: 0 }}>Tap the star and speak in {profile.lang === 'hi' ? 'Hindi or Hinglish' : 'your language'}. Dhriti listens, understands and guides you.</p>
+          <h1>{hi ? 'Abhi kya ho raha hai?' : "What's happening right now?"}</h1>
+          <p className="muted" style={{ margin: 0 }}>{hi ? 'Mic dabaiye aur Hindi ya Hinglish mein boliye. Dhriti sunegi, samjhegi aur saath degi.' : 'Tap the mic and speak in your language. Dhriti listens, understands and guides you.'}</p>
+          </div>
         </div>
         <span className={`badge ${careLevel >= 3 ? 'warn' : 'info'}`}>Care level {careLevel} · {route.label}</span>
       </div>
 
       <div className="grid two">
         <div className="card">
-          <VoiceInput onUtterance={onUtterance} prompt={busy ? 'Thinking…' : 'Try: "phir se haath dhone ka mann ho raha hai"'} />
+          <VoiceInput onUtterance={onUtterance} prompt={busy ? (hi ? 'Soch rahi hoon…' : 'Thinking…') : (hi ? 'Boliye, jaise: "phir se haath dhone ka mann ho raha hai"' : 'Try: "I need to check the lock again"')} />
+          {lastReply && !busy && <div className="bubble assistant" style={{ maxWidth: '100%', marginTop: 12 }} aria-live="polite">{lastReply.content}</div>}
           {last && (
             <div className="row" style={{ justifyContent: 'center', marginTop: 10 }}>
               <span className="badge info">{last.intent.toLowerCase().replace('_', ' ')}</span>
@@ -94,15 +103,16 @@ export default function Home() {
               {last.guarded.length > 0 && <span className="badge warn">guardrail applied</span>}
             </div>
           )}
-          <label className="row" style={{ justifyContent: 'center', gap: 8, marginTop: 14, cursor: 'pointer' }}>
-            <input type="checkbox" checked={wake} onChange={(e) => setWake(e.target.checked)} style={{ width: 18, height: 18 }} />
-            <span>Hands-free: listen for "Dhriti, madad" while this screen is open</span>
+          <label className="toggle-line">
+            <input type="checkbox" checked={wake} onChange={(e) => setWake(e.target.checked)} />
+            <span>{hi ? 'Hands-free: jab tak yeh screen khuli hai, "Dhriti, madad" sunti rahun' : 'Hands-free: listen for "Dhriti, madad" while this screen is open'}</span>
           </label>
+          {wake && <div className="badge info" style={{ alignSelf: 'center', margin: '6px auto 0', display: 'flex', width: 'fit-content' }}>🎙 {hi ? 'Mic on hai, sirf is screen par' : 'Mic is on, only on this screen'}</div>}
         </div>
 
         <div className="card">
           <div className="spread" style={{ marginBottom: 10 }}>
-            <h3 style={{ margin: 0 }}>Conversation</h3>
+            <h3 style={{ margin: 0 }}>{hi ? 'Baatcheet' : 'Conversation'}</h3>
             {data.chat.length > 0 && <button className="btn small ghost" onClick={() => update((d) => ({ ...d, chat: [] }))}>Clear</button>}
           </div>
           <div className="chat" ref={chatRef}>
@@ -121,7 +131,7 @@ export default function Home() {
         <div className="card tight stat"><span className="v">{latestScreening?.ybocs?.result.total ?? '–'}</span><span className="l">latest Y-BOCS</span></div>
       </div>
 
-      <h2 style={{ marginTop: 28 }}>Tools</h2>
+      <h2 style={{ marginTop: 28 }}>{hi ? 'Aapke tools' : 'Tools'}</h2>
       <div className="grid four keep">
         {features.map((f) => (
           <button key={f.to} className="feature" onClick={() => navigate(f.to)}>
@@ -132,6 +142,11 @@ export default function Home() {
         ))}
       </div>
 
+      {daysSinceScreen !== null && daysSinceScreen > 28 && (
+        <div className="notice" style={{ marginTop: 18 }}>
+          {hi ? 'Pichhli screening ko 4 hafte ho gaye. Dobara check karke dekhiye ki kitna badlaav aaya.' : 'It has been 4 weeks since your last screening. Re-check to see how much has changed.'} <a href="/screening" onClick={(e) => { e.preventDefault(); navigate('/screening'); }}>{hi ? 'Screening shuru karein →' : 'Re-screen →'}</a>
+        </div>
+      )}
       {!latestScreening && (
         <div className="notice info" style={{ marginTop: 18 }}>
           Take the spoken screening so Dhriti can match the right level of support to you. <a href="/screening" onClick={(e) => { e.preventDefault(); navigate('/screening'); }}>Start screening →</a>

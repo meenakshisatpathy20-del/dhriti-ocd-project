@@ -69,6 +69,7 @@ export default function App() {
 
   useEffect(() => setMuted(data.profile.muted || data.profile.quiet), [data.profile.muted, data.profile.quiet]);
   useEffect(() => setMenu(false), [loc.pathname]);
+  useEffect(() => { document.body.classList.toggle('calm-mode', data.profile.calm); }, [data.profile.calm]);
 
   const proRoute = loc.pathname.startsWith('/pro') || loc.pathname.startsWith('/admin');
   if (!data.profile.onboarded && !proRoute && loc.pathname !== '/research' && loc.pathname !== '/lab') {

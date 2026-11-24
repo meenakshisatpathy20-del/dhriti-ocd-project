@@ -46,7 +46,7 @@ export async function runAgent(text: string, ctx: AgentContext, deps: { nb: Naiv
   let engine: AgentResponse['engine'] = 'offline';
   if (deps.model) {
     try {
-      const out = await deps.model(systemPrompt(ctx.lang, ctx.careLevel, ctx.name), [...ctx.history.slice(-8), { role: 'user', content: text }], TOOLS);
+      const out = await deps.model(systemPrompt(ctx.lang, ctx.careLevel, ctx.name, ctx.plan), [...ctx.history.slice(-8), { role: 'user', content: text }], TOOLS);
       actions = out.toolCalls.map((tc) => toolCallToAction(tc, text)).filter((a): a is AgentAction => a !== null);
       reply = out.content.trim();
       engine = 'model';
@@ -80,7 +80,7 @@ export async function runAgent(text: string, ctx: AgentContext, deps: { nb: Naiv
   // OCD-EVAL finding: safety reflexes that treat an intrusive thought as danger
   // (distance from the baby, crisis lines, "is he safe?") harm people with OCD.
   if ((c.intent === 'REASSURANCE' || c.intent === 'URGE') && hasRiskFraming(reply)) {
-    reply = erpReply(ctx.lang, themeOf(text, ctx.history), detectTactic(text));
+    reply = erpReply(ctx.lang, themeOf(text, ctx.history), detectTactic(text), ctx.plan);
     trace.push('guardrail: removed risk framing of an intrusive thought');
   }
   if (c.riskCheck && c.intent !== 'REASSURANCE') {
@@ -97,7 +97,7 @@ export async function runAgent(text: string, ctx: AgentContext, deps: { nb: Naiv
     const g = guardReply(r);
     if (g.blocked.length) t.push(`guardrail rewrote reply: ${g.blocked.join(', ')}`);
     // A guardrail rewrite of a reassurance reply falls back to the full ERP reply, not a bare sentence.
-    const text2 = g.blocked.includes('reassurance') && (c.intent === 'REASSURANCE' || c.intent === 'URGE') ? erpReply(ctx.lang, themeOf(text, ctx.history), detectTactic(text)) : g.text;
+    const text2 = g.blocked.includes('reassurance') && (c.intent === 'REASSURANCE' || c.intent === 'URGE') ? erpReply(ctx.lang, themeOf(text, ctx.history), detectTactic(text), ctx.plan) : g.text;
     return { reply: text2, actions: a, intent: c.intent, confidence: c.confidence, engine: e, guarded: g.blocked, trace: t, tactic: c.intent === 'REASSURANCE' ? detectTactic(text) : null };
   }
 }

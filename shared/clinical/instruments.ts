@@ -257,3 +257,46 @@ export function isTreatmentResponse(baseline: number, current: number): boolean 
   if (baseline <= 0) return false;
   return (baseline - current) / baseline >= 0.35;
 }
+
+/**
+ * Mood check: PHQ-2 (Kroenke et al., 2003) plus PHQ-9 item 9 (thoughts of
+ * self-harm). OCD frequently co-occurs with depression, and item 9 is the
+ * standard safety question. PHQ items are in the public domain.
+ * PHQ-2 >= 3 suggests depression should be assessed; any item-9 answer > 0
+ * opens crisis support immediately.
+ */
+export const PHQ_OPTIONS: Record<Lang, string[]> = {
+  en: ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'],
+  hi: ['Bilkul nahi', 'Kuch din', 'Aadhe se zyada din', 'Lagbhag har din'],
+};
+
+export const PHQ_ITEMS: { id: string; text: Record<Lang, string> }[] = [
+  { id: 'phq1', text: { en: 'Over the last two weeks, how often have you had little interest or pleasure in doing things?', hi: 'Pichhle do hafton mein, kitni baar kaam karne mein kam dilchaspi ya khushi mehsoos hui?' } },
+  { id: 'phq2', text: { en: 'Over the last two weeks, how often have you felt down, depressed or hopeless?', hi: 'Pichhle do hafton mein, kitni baar udaas, nirash ya hopeless mehsoos kiya?' } },
+  { id: 'phq9', text: { en: 'Over the last two weeks, how often have you had thoughts that you would be better off dead, or of hurting yourself?', hi: 'Pichhle do hafton mein, kitni baar yeh vichaar aaye ki mar jaana behtar hoga, ya khud ko nuksan pahunchane ke vichaar?' } },
+];
+
+export interface MoodResult {
+  phq2: number;
+  item9: number;
+  depressionFlag: boolean;
+  safetyFlag: boolean;
+}
+
+export function scoreMood(answers: number[]): MoodResult {
+  if (answers.length !== 3 || answers.some((a) => !Number.isInteger(a) || a < 0 || a > 3)) throw new Error('Mood check needs 3 answers, each 0-3');
+  const phq2 = answers[0] + answers[1];
+  return { phq2, item9: answers[2], depressionFlag: phq2 >= 3, safetyFlag: answers[2] > 0 };
+}
+
+/** A positive mood screen raises the care level: depression with OCD needs a professional. */
+export function adjustForMood(route: CareRoute, mood: MoodResult | null): CareRoute {
+  if (!mood) return route;
+  if (mood.safetyFlag) {
+    return { level: 4, label: 'Urgent professional support', recommendation: 'You mentioned thoughts of self-harm. Please talk to Tele-MANAS (14416) now and see a psychiatrist soon. Dhriti will support you, but you deserve a person.', referToProfessional: true, selfGuidedErp: false };
+  }
+  if (mood.depressionFlag && route.level < 3) {
+    return { ...route, level: 3, label: 'Professional check advised', recommendation: `${route.recommendation} Your mood answers suggest low mood too, which is common with OCD; please book a professional to check it.`, referToProfessional: true };
+  }
+  return route;
+}

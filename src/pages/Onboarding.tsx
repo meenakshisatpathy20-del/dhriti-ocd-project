@@ -5,6 +5,7 @@ import { useStore } from '../state/store';
 import { speak } from '../lib/speech';
 import { VoiceInput } from '../components/VoiceInput';
 import { Logo } from '../components/Icons';
+import { Mascot } from '../components/Mascot';
 import { tokens } from '../../shared/nlp/normalize';
 import { parseYesNo } from '../../shared/nlp/answers';
 
@@ -50,6 +51,7 @@ export default function Onboarding() {
             <small className="muted">धृति · steadfast resolve · a voice-first OCD companion</small>
           </div>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><Mascot mood={step === 2 ? 'calm' : step === 3 ? 'proud' : 'happy'} size={110} /></div>
         <div className="progress" style={{ marginBottom: 22 }}><div style={{ width: `${((step + 1) / 4) * 100}%` }} /></div>
 
         {step === 0 && (

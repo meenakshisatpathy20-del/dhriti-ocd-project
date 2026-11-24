@@ -17,9 +17,10 @@ OCD urges and panic strike when hands are wet, busy or shaking. Typing is the on
 | Area | What it does | Voice |
 |---|---|---|
 | **Talk to Dhriti** (AI agent) | Understands what you say and acts: opens the urge coach, panic mode, diary, lessons, booking | Speak in 4 languages + Hinglish; optional hands-free "Dhriti, madad" |
-| **Spoken screening** | OCI-R (≥21 = likely OCD) then Y-BOCS severity bands; symptom profile across 6 OCI-R dimensions | Answer in your own words ("kaafi", "more than 8 hours") |
+| **Spoken screening** | OCI-R (≥21 = likely OCD), Y-BOCS severity bands, and a mood check (PHQ-2 + the PHQ-9 self-harm item) that raises care for low mood and opens crisis support immediately if needed | Answer in your own words ("kaafi", "more than 8 hours") |
 | **Stepped-care routing** | Care levels 1-4: wellbeing → guided self-help → therapist-supported ERP → psychiatrist first | – |
 | **Urge coach (ERP)** | Extracts trigger, fear and compulsion; 2-minute waiting rounds with spoken 0-10 anxiety ratings; outcome logged without judgement | "Phir se haath dhone ka mann ho raha hai" |
+| **Therapist ERP plan** | The professional writes the patient's ERP plan in the portal; the patient accepts it; Dhriti repeats it word for word during urges and reassurance requests | ✓ |
 | **Reassurance guard** | Never answers "are you sure?"; recognises fact / bargain / guilt / proxy pressure; tracks reassurance loops | Fully spoken |
 | **Voice panic button** | Calm screen; calibrated microphone hears each exhale and a star dims as breaths lengthen; "Maa ko bulao" opens WhatsApp to a trusted contact | Breath is the input |
 | **Exposure ladder** | Build ERP steps by voice ("bus ki seat chhoona, saat"); profile-matched suggestions | ✓ |
@@ -30,7 +31,9 @@ OCD urges and panic strike when hands are wet, busy or shaking. Typing is the on
 | **Professional marketplace** | KYC onboarding (council, registration number, qualification, certificate upload); human verification console; booking online/offline; patient-doctor chat; consented report sharing | Chat works with dictation |
 | **Safety Lab** | Runs Dhriti's agent through OCD-EVAL scenarios (Part B single reply, Part C five turns of pressure), graded live | – |
 | **Wispr Flow mode** | Every text box is dictation-ready; a global mode switches all input to text boxes for Wispr Flow | See [docs/WISPR_FLOW.md](docs/WISPR_FLOW.md) |
-| **Privacy & calm** | Data stays on the device; Quiet mode for shared homes; calm visuals; export / delete all data | – |
+| **Privacy & calm** | Data stays on the device; Quiet mode for shared homes; calm visuals; export / delete all data; works offline (service worker) | – |
+| **Warm design** | Doodled cosmos, Tara the star mascot (bobs, blinks, listens, celebrates), orbiting planets round the mic, sound bars, star-burst celebrations, breathing ring; all motion stops in calm mode | – |
+| **Chat safety** | Risky messages to a professional show crisis help at once and are flagged urgent in the portal | – |
 
 ## The AI/ML pipeline, end to end
 
@@ -53,9 +56,9 @@ Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Component | Command | Output |
 |---|---|---|
 | **ML pipeline** on the public OCD patient dataset (1,500 records): audit → train → cross-validate → export | `npm run ml` | [ml/reports/REPORT.md](ml/reports/REPORT.md) |
-| **OCD-Eval (intent)**: does Dhriti understand what people say? 140 labelled utterances in 5 language groups + held-out set, self-harm release gate | `npm run eval` | [eval/RESULTS.md](eval/RESULTS.md) |
+| **OCD-Eval (intent)**: does Dhriti understand what people say? 145 labelled utterances (8 intents) in 5 language groups + held-out set, self-harm release gate | `npm run eval` | [eval/RESULTS.md](eval/RESULTS.md) |
 | **Safety Lab (OCD-EVAL behaviour)**: Dhriti's agent vs. our OCD-EVAL scenarios, grader validated against hand labels | `npm run lab` | [lab/RESULTS.md](lab/RESULTS.md) |
-| **Unit tests** (47) | `npm test` | – |
+| **Unit tests** (51) | `npm test` | – |
 
 ### Key findings (honest)
 
@@ -82,6 +85,7 @@ Optional: connect the agent to any OpenAI-compatible chat API by copying `.env.e
 
 ### Demo path (5 minutes)
 
+0. Optional: **Profile → Load demo data** fills four weeks of fictional history (Y-BOCS 22 → 14), so charts and reports are not empty.
 1. Onboard in Hindi → **Talk to Dhriti**: say *"phir se haath dhone ka mann ho raha hai"* → urge coach opens with trigger/fear/urge → rate anxiety by voice.
 2. Say *"pakka saaf hai na?"* twice → reassurance is declined and the loop is detected.
 3. **SOS** → breathe out into the mic and watch the star dim.

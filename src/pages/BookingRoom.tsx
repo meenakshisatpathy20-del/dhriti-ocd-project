@@ -4,19 +4,21 @@ import { useStore } from '../state/store';
 import { api } from '../lib/api';
 import { useReportData } from './Report';
 import { VoiceInput } from '../components/VoiceInput';
+import { classify } from '../../shared/nlp/classifier';
 
 interface Msg { id: string; from: 'patient' | 'professional'; text: string; at: string }
-interface BookingRow { id: string; slot: string; mode: string; status: string; sharedReport?: unknown; professional: { name: string } }
+interface BookingRow { id: string; slot: string; mode: string; status: string; sharedReport?: unknown; carePlan?: { text: string; at: string }; professional: { name: string } }
 
 /** Patient side of a booking: details, consent-based report sharing and secure chat. */
 export default function BookingRoom() {
   const { id = '' } = useParams();
-  const { data } = useStore();
+  const { data, setProfile } = useStore();
   const navigate = useNavigate();
   const report = useReportData();
   const [booking, setBooking] = useState<BookingRow | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [shared, setShared] = useState(false);
+  const [risk, setRisk] = useState(false);
   const headers = { 'x-patient-id': data.profile.patientId };
 
   const load = () => {
@@ -35,6 +37,9 @@ export default function BookingRoom() {
   }, [id]);
 
   const send = async (text: string) => {
+    // Professionals may not read messages straight away: never let a crisis wait in a chat.
+    const c = classify(text);
+    if (c.intent === 'SELF_HARM' || c.intent === 'EMERGENCY' || c.riskCheck) setRisk(true);
     await api(`/api/bookings/${id}/messages`, { method: 'POST', headers, json: { text } });
     load();
   };
@@ -61,9 +66,25 @@ export default function BookingRoom() {
             {msgs.length === 0 && <p className="faint">Say hello, or ask about the session. Messages are visible only to you and this professional.</p>}
             {msgs.map((m) => <div key={m.id} className={`bubble ${m.from === 'patient' ? 'user' : 'assistant'}`}>{m.text}</div>)}
           </div>
+          {risk && (
+            <div className="notice danger stack" style={{ gap: 8 }}>
+              <b>Your professional may not see this right away.</b>
+              <span>If you are thinking of harming yourself or someone is hurt, please get help now.</span>
+              <div className="row"><a className="btn small danger" href="tel:14416">Tele-MANAS 14416</a><a className="btn small" href="tel:112">Emergency 112</a></div>
+            </div>
+          )}
           <VoiceInput size="small" onUtterance={(u) => send(u.text)} prompt="Speak or type a message" />
         </div>
         <div className="card stack">
+          {booking.carePlan && (
+            <div className="notice info stack" style={{ gap: 8 }}>
+              <b>Your ERP plan from {booking.professional.name}</b>
+              <span>"{booking.carePlan.text}"</span>
+              {data.profile.carePlan?.text === booking.carePlan.text
+                ? <span className="badge ok" style={{ alignSelf: 'flex-start' }}>Dhriti is using this plan</span>
+                : <button className="btn small primary" style={{ alignSelf: 'flex-start' }} onClick={() => setProfile({ carePlan: { text: booking.carePlan!.text, from: booking.professional.name, at: booking.carePlan!.at } })}>Use this plan in Dhriti</button>}
+            </div>
+          )}
           <h3>Share your progress report</h3>
           <p className="muted">Your data stays on your phone until you choose to share it. Sharing sends a summary, not your diary.</p>
           {shared ? <span className="badge ok">Report shared</span> : <button className="btn primary" onClick={share}>Share 14-day summary</button>}

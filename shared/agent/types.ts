@@ -31,6 +31,8 @@ export interface AgentContext {
   name?: string;
   reassurance: ReassuranceEvent[];
   history: ChatTurn[];
+  /** The ERP plan agreed with the user's therapist, if any. */
+  plan?: string;
   now?: number;
 }
 

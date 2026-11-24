@@ -11,6 +11,7 @@ import { speak } from '../lib/speech';
 import { playMood, stopMusic } from '../lib/music';
 import { VoiceInput } from '../components/VoiceInput';
 import { LineChart, Ring } from '../components/Charts';
+import { Mascot, Celebrate } from '../components/Mascot';
 
 const ROUND_SEC = 120;
 const MAX_ROUNDS = 7; // up to 14 minutes
@@ -200,6 +201,8 @@ export default function Coach() {
             )}
             {stage === 'done' && (
               <>
+                {outcome !== 'did' && <Celebrate />}
+                <Mascot mood={outcome === 'did' ? 'calm' : 'proud'} size={110} />
                 <h2>{outcome === 'did' ? 'That is okay.' : 'Well done.'}</h2>
                 <p className="muted">{phrase('noJudgement', 'en')} {outcome !== 'did' && suds.length > 1 ? `Your anxiety went from ${Math.max(...suds.map((s) => s.value))} to ${suds[suds.length - 1].value}.` : ''}</p>
                 <div className="row" style={{ justifyContent: 'center' }}>

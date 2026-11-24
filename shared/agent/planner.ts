@@ -38,7 +38,7 @@ export function planOffline(text: string, c: HybridClassification, ctx: AgentCon
       const tactic = detectTactic(text);
       const theme = themeOf(text, ctx.history);
       trace.push(`reassurance declined (theme=${theme}, tactic=${tactic ?? 'none'}, loop=${loop})`);
-      return { reply: erpReply(lang, theme, tactic), actions: [{ type: 'DECLINE_REASSURANCE', loop }], trace };
+      return { reply: erpReply(lang, theme, tactic, ctx.plan), actions: [{ type: 'DECLINE_REASSURANCE', loop }], trace };
     }
 
     case 'URGE': {
@@ -53,7 +53,8 @@ export function planOffline(text: string, c: HybridClassification, ctx: AgentCon
         };
       }
       trace.push('tool: start_erp_coach');
-      return { reply: `${phrase('urgeAck', lang)} ${phrase('urgeWait', lang)}`, actions: [{ type: 'START_ERP', episode }], trace };
+      const planLine = ctx.plan ? (lang === 'hi' ? ` Aapka plan: "${ctx.plan}".` : ` Your plan: "${ctx.plan}".`) : '';
+      return { reply: `${phrase('urgeAck', lang)}${planLine} ${phrase('urgeWait', lang)}`, actions: [{ type: 'START_ERP', episode }], trace };
     }
 
     case 'DIARY': {

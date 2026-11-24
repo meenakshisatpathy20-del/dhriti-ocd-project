@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AppLang } from '../../shared/i18n/phrases';
-import type { OcirResult, YbocsResult, CareRoute, CareLevel } from '../../shared/clinical/instruments';
+import type { OcirResult, YbocsResult, CareRoute, CareLevel, MoodResult } from '../../shared/clinical/instruments';
 import { routeCare } from '../../shared/clinical/instruments';
 import type { EpisodeExtraction } from '../../shared/nlp/extract';
 import type { ErpOutcome } from '../../shared/nlp/answers';
@@ -24,6 +24,8 @@ export interface Profile {
   calm: boolean;
   wisprMode: boolean;
   muted: boolean;
+  /** ERP plan agreed with the therapist; Dhriti repeats it when the urge comes. */
+  carePlan: { text: string; from: string; at: string } | null;
 }
 
 export interface ScreeningRecord {
@@ -31,6 +33,7 @@ export interface ScreeningRecord {
   at: string;
   ocir: { answers: number[]; result: OcirResult } | null;
   ybocs: { answers: number[]; result: YbocsResult } | null;
+  mood?: { answers: number[]; result: MoodResult } | null;
   route: CareRoute;
 }
 
@@ -86,7 +89,7 @@ export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random(
 
 function fresh(): AppData {
   return {
-    profile: { patientId: uid(), name: '', lang: 'hi', onboarded: false, consentAt: null, trustedContact: null, quiet: false, calm: false, wisprMode: false, muted: false },
+    profile: { patientId: uid(), name: '', lang: 'hi', onboarded: false, consentAt: null, trustedContact: null, quiet: false, calm: false, wisprMode: false, muted: false, carePlan: null },
     screenings: [], episodes: [], diary: [], ladder: [], reassurance: [], practice: [], lessons: {}, chat: [],
   };
 }

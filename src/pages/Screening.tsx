@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore, uid } from '../state/store';
 import {
-  OCIR_ITEMS, OCIR_OPTIONS, OCIR_CUTOFF, YBOCS_ITEMS, scoreOcir, scoreYbocs, routeCare,
-  type Lang, type OcirResult, type YbocsResult,
+  OCIR_ITEMS, OCIR_OPTIONS, OCIR_CUTOFF, YBOCS_ITEMS, PHQ_ITEMS, PHQ_OPTIONS, scoreOcir, scoreYbocs, scoreMood, routeCare, adjustForMood,
+  type Lang, type OcirResult, type YbocsResult, type MoodResult,
 } from '../../shared/clinical/instruments';
 import { parseLikert, parseOption } from '../../shared/nlp/answers';
 import { classify } from '../../shared/nlp/classifier';
@@ -13,7 +13,7 @@ import { VoiceInput } from '../components/VoiceInput';
 import { Bars } from '../components/Charts';
 import model from '../../shared/ml/model.json';
 
-type Stage = 'intro' | 'ocir' | 'between' | 'ybocs' | 'result';
+type Stage = 'intro' | 'ocir' | 'between' | 'ybocs' | 'mood' | 'result';
 
 export default function Screening() {
   const { data, update } = useStore();
@@ -26,14 +26,16 @@ export default function Screening() {
   const [ybocsAns, setYbocsAns] = useState<number[]>([]);
   const [ocir, setOcir] = useState<OcirResult | null>(null);
   const [ybocs, setYbocs] = useState<YbocsResult | null>(null);
+  const [moodAns, setMoodAns] = useState<number[]>([]);
+  const [mood, setMood] = useState<MoodResult | null>(null);
   const [miss, setMiss] = useState('');
 
-  const question = stage === 'ocir' ? OCIR_ITEMS[i].text[ilang] : stage === 'ybocs' ? YBOCS_ITEMS[i].question[ilang] : '';
-  const options = stage === 'ocir' ? OCIR_OPTIONS[ilang] : stage === 'ybocs' ? YBOCS_ITEMS[i].options[ilang] : [];
+  const question = stage === 'ocir' ? OCIR_ITEMS[i].text[ilang] : stage === 'ybocs' ? YBOCS_ITEMS[i].question[ilang] : stage === 'mood' ? PHQ_ITEMS[i].text[ilang] : '';
+  const options = stage === 'ocir' ? OCIR_OPTIONS[ilang] : stage === 'ybocs' ? YBOCS_ITEMS[i].options[ilang] : stage === 'mood' ? PHQ_OPTIONS[ilang] : [];
 
   useEffect(() => {
-    if (stage === 'ocir' || stage === 'ybocs') {
-      const optText = stage === 'ybocs' ? ` ${options.map((o, k) => `${k + 1}: ${o}`).join('. ')}` : '';
+    if (stage === 'ocir' || stage === 'ybocs' || stage === 'mood') {
+      const optText = stage !== 'ocir' ? ` ${options.map((o, k) => `${k + 1}: ${o}`).join('. ')}` : '';
       speak(question + optText, lang);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -55,20 +57,37 @@ export default function Screening() {
     } else if (stage === 'ybocs') {
       const next = [...ybocsAns, value];
       setYbocsAns(next);
-      if (next.length === YBOCS_ITEMS.length) finish(ocir, scoreYbocs(next), next);
-      else setI(i + 1);
+      if (next.length === YBOCS_ITEMS.length) {
+        setYbocs(scoreYbocs(next));
+        toMood();
+      } else setI(i + 1);
+    } else if (stage === 'mood') {
+      const next = [...moodAns, value];
+      setMoodAns(next);
+      if (next.length === PHQ_ITEMS.length) {
+        const m = scoreMood(next);
+        setMood(m);
+        finish(ocir, ybocs, ybocsAns, next, m);
+        if (m.safetyFlag) navigate('/crisis');
+      } else setI(i + 1);
     }
   };
 
-  const finish = (o: OcirResult | null, y: YbocsResult | null, yAns: number[] | null) => {
-    setYbocs(y);
-    const route = routeCare(o, y);
+  const toMood = () => {
+    setStage('mood');
+    setI(0);
+    speak(lang === 'hi' ? 'Ab teen chhote sawaal aapke mood ke baare mein.' : 'Now three short questions about your mood.', lang);
+  };
+
+  const finish = (o: OcirResult | null, y: YbocsResult | null, yAns: number[] | null, mAns: number[], m: MoodResult) => {
+    const route = adjustForMood(routeCare(o, y), m);
     update((d) => ({
       ...d,
       screenings: [...d.screenings, {
         id: uid(), at: new Date().toISOString(),
         ocir: o ? { answers: ocirAns.length === 18 ? ocirAns : [], result: o } : null,
-        ybocs: y && yAns ? { answers: yAns, result: y } : null,
+        ybocs: y && yAns && yAns.length === 10 ? { answers: yAns, result: y } : null,
+        mood: { answers: mAns, result: m },
         route,
       }],
     }));
@@ -78,7 +97,7 @@ export default function Screening() {
 
   const onVoice = (text: string) => {
     if (classify(text).intent === 'SELF_HARM') return navigate('/crisis');
-    const v = stage === 'ocir' ? parseLikert(text) : parseOption(text, YBOCS_ITEMS[i].options[ilang]) ?? parseOption(text, YBOCS_ITEMS[i].options.en);
+    const v = stage === 'ocir' ? parseLikert(text) : stage === 'mood' ? (parseOption(text, PHQ_OPTIONS[ilang]) ?? parseOption(text, PHQ_OPTIONS.en)) : parseOption(text, YBOCS_ITEMS[i].options[ilang]) ?? parseOption(text, YBOCS_ITEMS[i].options.en);
     if (v === null) {
       setMiss(lang === 'hi' ? 'Samajh nahi aaya. Neeche se chuniye ya dobara boliye.' : "I didn't catch an answer. Choose below or say it again.");
       return;
@@ -93,7 +112,8 @@ export default function Screening() {
     return Math.round((below / totals.length) * 100);
   }, [ybocs]);
 
-  const total = stage === 'ocir' ? OCIR_ITEMS.length : YBOCS_ITEMS.length;
+  const total = stage === 'ocir' ? OCIR_ITEMS.length : stage === 'mood' ? PHQ_ITEMS.length : YBOCS_ITEMS.length;
+  const finalRoute = adjustForMood(routeCare(ocir, ybocs), mood);
 
   return (
     <div>
@@ -109,6 +129,7 @@ export default function Screening() {
           <ol className="muted" style={{ paddingLeft: 20 }}>
             <li><b>OCI-R</b> (18 statements): a score of {OCIR_CUTOFF} or more suggests likely OCD.</li>
             <li><b>Y-BOCS</b> (10 questions): measures severity from 0 to 40.</li>
+            <li><b>Mood check</b> (3 questions): OCD often comes with low mood, so we ask about it too.</li>
             <li>Dhriti then suggests the right level of support, from self-help to a psychiatrist.</li>
           </ol>
           {(lang === 'ta' || lang === 'bn') && <div className="notice">Questions are shown in English for now; you can answer in {lang === 'ta' ? 'Tamil' : 'Bengali'}.</div>}
@@ -119,10 +140,10 @@ export default function Screening() {
         </div>
       )}
 
-      {(stage === 'ocir' || stage === 'ybocs') && (
+      {(stage === 'ocir' || stage === 'ybocs' || stage === 'mood') && (
         <div className="card stack">
           <div className="spread">
-            <span className="badge info">{stage === 'ocir' ? 'OCI-R' : 'Y-BOCS'} · {i + 1} of {total}</span>
+            <span className="badge info">{stage === 'ocir' ? 'OCI-R' : stage === 'mood' ? 'Mood check' : 'Y-BOCS'} · {i + 1} of {total}</span>
             <button className="btn small ghost" onClick={() => speak(question, lang)}>Repeat</button>
           </div>
           <div className="progress"><div style={{ width: `${(i / total) * 100}%` }} /></div>
@@ -146,7 +167,7 @@ export default function Screening() {
           <p className="muted">{ocir.likelyOcd ? `At or above ${OCIR_CUTOFF}: OCD is likely. Next, Y-BOCS measures how severe it is.` : `Below ${OCIR_CUTOFF}: OCD looks unlikely. You can still check severity if you're worried.`}</p>
           <div className="row">
             <button className="btn primary" onClick={() => { setStage('ybocs'); setI(0); }}>Continue to Y-BOCS</button>
-            {!ocir.likelyOcd && <button className="btn" onClick={() => finish(ocir, null, null)}>Finish here</button>}
+            {!ocir.likelyOcd && <button className="btn" onClick={toMood}>Skip to the mood check</button>}
           </div>
         </div>
       )}
@@ -162,11 +183,13 @@ export default function Screening() {
               </>
             )}
             {ocir && <p>OCI-R: <b>{ocir.total}</b> / 72 {ocir.likelyOcd ? '(likely OCD)' : '(OCD unlikely)'}</p>}
-            <h3>Your care level: {routeCare(ocir, ybocs).level} · {routeCare(ocir, ybocs).label}</h3>
-            <p>{routeCare(ocir, ybocs).recommendation}</p>
+            {mood && <p>Mood check: PHQ-2 <b>{mood.phq2}</b> / 6 {mood.depressionFlag ? '(low mood: worth checking with a professional)' : ''}</p>}
+            <h3>Your care level: {finalRoute.level} · {finalRoute.label}</h3>
+            <p>{finalRoute.recommendation}</p>
+            {mood?.safetyFlag && <a className="btn danger" href="tel:14416">Talk to Tele-MANAS 14416 now</a>}
             <div className="row">
-              {routeCare(ocir, ybocs).referToProfessional && <button className="btn primary" onClick={() => navigate('/care')}>Find a verified professional</button>}
-              {routeCare(ocir, ybocs).selfGuidedErp && <button className="btn" onClick={() => navigate('/ladder')}>Build my exposure ladder</button>}
+              {finalRoute.referToProfessional && <button className="btn primary" onClick={() => navigate('/care')}>Find a verified professional</button>}
+              {finalRoute.selfGuidedErp && <button className="btn" onClick={() => navigate('/ladder')}>Build my exposure ladder</button>}
               <button className="btn ghost" onClick={() => navigate('/learn')}>Learn about OCD</button>
             </div>
           </div>

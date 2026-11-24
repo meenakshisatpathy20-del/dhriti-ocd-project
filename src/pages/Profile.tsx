@@ -3,9 +3,10 @@ import { useStore } from '../state/store';
 import { LANGS } from '../../shared/i18n/phrases';
 import { hasVoiceFor, recognitionSupported } from '../lib/speech';
 import { api } from '../lib/api';
+import { demoData } from '../lib/demo';
 
 export default function Profile() {
-  const { data, setProfile, reset, route, careLevel } = useStore();
+  const { data, setProfile, reset, route, careLevel, update } = useStore();
   const p = data.profile;
   const [health, setHealth] = useState<{ model: { configured: boolean; model: string | null } } | null>(null);
   useEffect(() => { api<typeof health>('/api/health').then(setHealth).catch(() => setHealth(null)); }, []);
@@ -37,6 +38,8 @@ export default function Profile() {
           <small className="muted">Speech recognition: {recognitionSupported() ? 'available' : 'not available in this browser (use Chrome, or Wispr Flow mode)'} · Spoken replies in this language: {hasVoiceFor(p.lang) ? 'available' : 'no voice installed, replies shown as text'}</small>
           <label>Name</label>
           <input value={p.name} onChange={(e) => setProfile({ name: e.target.value })} />
+          <label>My ERP plan {p.carePlan?.from ? `(from ${p.carePlan.from})` : ''}</label>
+          <textarea rows={2} value={p.carePlan?.text ?? ''} placeholder="What you and your therapist agreed. Dhriti repeats it when an urge comes." onChange={(e) => setProfile({ carePlan: e.target.value ? { text: e.target.value, from: p.carePlan?.from ?? 'me', at: new Date().toISOString() } : null })} />
           <label>Trusted contact (for "Maa ko bulao")</label>
           <div className="grid two">
             <input placeholder="Name" value={p.trustedContact?.name ?? ''} onChange={(e) => setProfile({ trustedContact: { name: e.target.value, phone: p.trustedContact?.phone ?? '' } })} />
@@ -55,6 +58,7 @@ export default function Profile() {
           <div className="row">
             <button className="btn" onClick={exportData}>Export my data (JSON)</button>
             <button className="btn danger" onClick={() => { if (confirm('Delete all Dhriti data on this device? This cannot be undone.')) reset(); }}>Delete everything</button>
+            <button className="btn" onClick={() => { if (confirm('Replace your data with 4 weeks of fictional demo data (for presentations)?')) update((d) => demoData(d)); }}>Load demo data</button>
           </div>
         </div>
         <div className="card stack">

@@ -6,6 +6,7 @@
 |---|---|---|
 | **OCI-R** (Foa et al., 2002) | First-stage screen, 18 items read aloud | 0-4 per item, total 0-72; **≥ 21 suggests OCD** (Foa et al. 2002 recommended cut-off). Six subscales (washing, checking, ordering, obsessing, hoarding, neutralising), 0-12 each, give the symptom profile. |
 | **Y-BOCS, self-report** (Goodman et al., 1989; Baer et al., 1993) | Severity, 10 items with item-specific options | Total 0-40: 0-7 subclinical, 8-15 mild, 16-23 moderate, 24-31 severe, 32-40 extreme. |
+| **PHQ-2 + PHQ-9 item 9** (Kroenke et al., 2003; public domain) | Mood check: depression often co-occurs with OCD | PHQ-2 ≥ 3 raises care to at least level 3; any item-9 answer > 0 opens crisis support and sets level 4. |
 
 The clinician-rated Y-BOCS is a semi-structured interview; an app can only administer the self-report form. Every result is labelled **"screening, not a diagnosis"**. The Hindi item wording is the project's working translation; a validated translation must be used for clinical deployment.
 
@@ -49,6 +50,7 @@ The clinician-rated Y-BOCS is a semi-structured interview; an app can only admin
 - Goodman WK, et al. (1989). The Yale-Brown Obsessive Compulsive Scale. *Archives of General Psychiatry*, 46, 1006-1011.
 - Baer L, et al. (1993). Self-report version of the Y-BOCS.
 - Mataix-Cols D, et al. (2016). Towards an international expert consensus for defining treatment response, remission, recovery and relapse in OCD. *World Psychiatry*, 15(1), 80-81.
+- Kroenke K, Spitzer RL, Williams JB (2003). The Patient Health Questionnaire-2. *Medical Care*, 41(11), 1284-1292.
 - National Mental Health Survey of India 2015-16 (NIMHANS).
 - Glazier K, et al. (2013). Recognition of OCD symptoms by mental health professionals.
 - OCD-EVAL: Knowing vs. Doing (this project's companion study): https://github.com/meenakshisatpathy20-del/OCD-EVAL

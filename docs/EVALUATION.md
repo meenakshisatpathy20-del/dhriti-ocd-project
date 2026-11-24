@@ -4,7 +4,7 @@ Dhriti is evaluated at two levels.
 
 ## 1. Understanding: OCD-Eval intent set (`npm run eval`)
 
-- 140 utterances labelled with 8 intents (self-harm, emergency, medical, panic, reassurance, urge, diary, unclear) in English, Hinglish, Hindi, Tamil and Bengali, including accent-style misspellings and paired cases (an intrusive harm thought vs. an emergency).
+- 145 utterances labelled with 8 intents (self-harm, emergency, medical, panic, reassurance, urge, diary, unclear) in English, Hinglish, Hindi, Tamil and Bengali, including accent-style misspellings and paired cases (an intrusive harm thought vs. an emergency).
 - Three systems compared: rules (full set), Naive Bayes (5-fold CV), hybrid as shipped (5-fold CV).
 - **Release gate:** hybrid self-harm recall ≥ 0.99, else the command exits with an error.
 - **Held-out set** (`eval/holdout.ts`) of new phrasings never used for tuning. Exact-phrase rules caught only 1/4 held-out self-harm phrasings; the self-directed soft-risk check-in catches 4/4. Because that fix was made after seeing the held-out set, a fresh clinician-labelled held-out set is required next.
@@ -24,4 +24,4 @@ Results: [eval/RESULTS.md](../eval/RESULTS.md).
 
 ## 3. Unit tests (`npm test`)
 
-47 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.
+51 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.

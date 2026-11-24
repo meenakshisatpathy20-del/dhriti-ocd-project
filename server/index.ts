@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runAgent } from '../shared/agent/run';
+import { classify } from '../shared/nlp/classifier';
 import type { AgentContext } from '../shared/agent/types';
 import { eligibleForCareLevel, validateKyc, type KycApplication } from '../shared/clinical/kyc';
 import type { NaiveBayesModel } from '../shared/ml/core';
@@ -26,6 +27,25 @@ const model = modelFromEnv();
 
 const app = express();
 app.use(express.json({ limit: '256kb' }));
+app.disable('x-powered-by');
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Permissions-Policy', 'microphone=(self), camera=(), geolocation=()');
+  next();
+});
+
+// Simple per-IP rate limit for the API (in-memory; use a shared store in production).
+const hits = new Map<string, { n: number; reset: number }>();
+app.use('/api', (req, res, next) => {
+  const key = `${req.ip}:${req.method === 'GET' ? 'r' : 'w'}`;
+  const now = Date.now();
+  const h = hits.get(key);
+  if (!h || h.reset < now) hits.set(key, { n: 1, reset: now + 60_000 });
+  else if (++h.n > (req.method === 'GET' ? 240 : 60)) return res.status(429).json({ error: 'Too many requests. Please wait a minute.' });
+  next();
+});
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -67,6 +87,7 @@ app.post('/api/agent', async (req, res) => {
     careLevel: ([1, 2, 3, 4] as const).includes(ctx?.careLevel as 1) ? (ctx!.careLevel as AgentContext['careLevel']) : 1,
     name: typeof ctx?.name === 'string' ? ctx.name.slice(0, 40) : undefined,
     reassurance: Array.isArray(ctx?.reassurance) ? ctx!.reassurance.slice(-20) : [],
+    plan: typeof ctx?.plan === 'string' ? ctx.plan.slice(0, 600) : undefined,
     history: Array.isArray(ctx?.history) ? ctx!.history.slice(-8).filter((t) => (t.role === 'user' || t.role === 'assistant') && typeof t.content === 'string') : [],
   };
   try {
@@ -223,6 +244,16 @@ app.post('/api/bookings/:id/share-report', (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/bookings/:id/plan', (req, res) => {
+  const access = bookingAccess(req);
+  if (!access || access.as !== 'professional') return bad(res, 403, 'Only the treating professional can set the ERP plan');
+  const text = String(req.body?.text ?? '').trim().slice(0, 600);
+  if (!text) return bad(res, 400, 'Plan is empty');
+  access.booking.carePlan = { text, at: new Date().toISOString() };
+  save();
+  res.json(access.booking.carePlan);
+});
+
 app.get('/api/bookings/:id/messages', (req, res) => {
   const access = bookingAccess(req);
   if (!access) return bad(res, 403, 'Not allowed');
@@ -234,7 +265,9 @@ app.post('/api/bookings/:id/messages', (req, res) => {
   if (!access) return bad(res, 403, 'Not allowed');
   const text = String(req.body?.text ?? '').trim().slice(0, 2000);
   if (!text) return bad(res, 400, 'Message is empty');
-  const msg = { id: newId(), bookingId: access.booking.id, from: access.as, text, at: new Date().toISOString() };
+  const c = classify(text);
+  const urgent = access.as === 'patient' && (c.intent === 'SELF_HARM' || c.intent === 'EMERGENCY' || c.riskCheck);
+  const msg = { id: newId(), bookingId: access.booking.id, from: access.as, text, at: new Date().toISOString(), urgent };
   db().messages.push(msg);
   save();
   res.status(201).json(msg);

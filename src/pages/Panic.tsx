@@ -134,7 +134,10 @@ export default function Panic() {
 
   return (
     <div className="calm-screen">
-      <div className="calm-star" style={{ opacity: 1 - dim, transform: `scale(${pulse})` }} />
+      <div className={`breath-wrap ${phase === 'in' ? 'in' : phase === 'out' ? 'out' : ''}`}>
+        <span className="breath-ring" aria-hidden />
+        <div className="calm-star" style={{ opacity: 1 - dim, transform: `scale(${pulse})` }} />
+      </div>
       {phase === 'start' && (
         <>
           <h1>{lang === 'hi' ? 'Main yahin hoon.' : "I'm right here."}</h1>

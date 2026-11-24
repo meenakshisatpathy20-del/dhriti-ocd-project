@@ -52,6 +52,9 @@ export function VoiceInput({ onUtterance, prompt, size = 'big', autoStart = fals
     <div className="orb-wrap">
       {!forceText && (
         <>
+          <div className={`orb-stage ${size === 'small' ? 'small' : ''} ${v.listening ? 'listening' : ''}`}>
+          <span className="orbit" aria-hidden />
+          <span className="orbit two" aria-hidden />
           <button
             type="button"
             className={`orb ${size === 'small' ? 'small' : ''} ${v.listening ? 'listening' : ''}`}
@@ -60,6 +63,8 @@ export function VoiceInput({ onUtterance, prompt, size = 'big', autoStart = fals
           >
             <Mic />
           </button>
+          </div>
+          {v.listening && <div className="soundbars" aria-hidden><span /><span /><span /><span /><span /></div>}
           <div className="transcript" aria-live="polite">{status}</div>
           <button type="button" className="btn small ghost" onClick={() => { v.stop(); setTyping(true); }}>⌨ Type instead</button>
         </>

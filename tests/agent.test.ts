@@ -52,3 +52,12 @@ describe('agent pipeline', () => {
     expect(r.actions).toEqual([{ type: 'START_MEDITATION', kind: 'bhramari' }]);
   });
 });
+
+describe('therapist ERP plan', () => {
+  it('is repeated when reassurance is declined', async () => {
+    const plan = 'After the bin: no washing or gel for one hour.';
+    const r = await runAgent('are you sure my hands are clean?', ctx({ plan }), deps);
+    expect(r.intent).toBe('REASSURANCE');
+    expect(r.reply).toContain(plan);
+  });
+});

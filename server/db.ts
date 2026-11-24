@@ -33,6 +33,7 @@ export interface Booking {
   status: 'requested' | 'confirmed' | 'completed' | 'cancelled';
   note?: string;
   sharedReport?: unknown;
+  carePlan?: { text: string; at: string };
   createdAt: string;
 }
 
@@ -41,6 +42,7 @@ export interface Message {
   bookingId: string;
   from: 'patient' | 'professional';
   text: string;
+  urgent?: boolean;
   at: string;
 }
 

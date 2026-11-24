@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../lib/api';
 
-interface Booking { id: string; patientAlias: string; slot: string; mode: string; status: string; sharedReport?: Record<string, unknown> & { ybocsSeries?: { total: number; band: string }[]; outcomes?: Record<string, number>; reassurance14?: number; careLabel?: string; episodes14?: number; topCompulsions?: [string, number][] } }
-interface Msg { id: string; from: string; text: string }
+interface Booking { id: string; patientAlias: string; slot: string; mode: string; status: string; carePlan?: { text: string; at: string }; sharedReport?: Record<string, unknown> & { ybocsSeries?: { total: number; band: string }[]; outcomes?: Record<string, number>; reassurance14?: number; careLabel?: string; episodes14?: number; topCompulsions?: [string, number][] } }
+interface Msg { id: string; from: string; text: string; urgent?: boolean }
 
 const KEY = 'dhriti:pro-key';
 
@@ -16,6 +16,7 @@ export default function DoctorPortal() {
   const [open, setOpen] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [reply, setReply] = useState('');
+  const [plans, setPlans] = useState<Record<string, string>>({});
   const headers = { 'x-pro-key': key };
 
   const load = () => {
@@ -81,6 +82,12 @@ export default function DoctorPortal() {
                   <b>Shared report</b> · care: {String(b.sharedReport.careLabel)} · Y-BOCS: {b.sharedReport.ybocsSeries?.map((y) => y.total).join(' → ') || 'n/a'} · urges (14d): {String(b.sharedReport.episodes14)} · resisted/delayed/did: {b.sharedReport.outcomes ? `${b.sharedReport.outcomes.resisted}/${b.sharedReport.outcomes.delayed}/${b.sharedReport.outcomes.did}` : 'n/a'} · reassurance asks: {String(b.sharedReport.reassurance14)}
                 </div>
               ) : <small className="faint">Patient has not shared a report.</small>}
+              <label style={{ margin: '4px 0 0' }}>ERP plan for this patient (Dhriti will repeat it during urges)</label>
+              <textarea rows={2} value={plans[b.id] ?? b.carePlan?.text ?? ''} placeholder='e.g. "After touching the bin: no washing or gel for one hour. If you ask whether it is safe, I will not answer."' onChange={(e) => setPlans({ ...plans, [b.id]: e.target.value })} />
+              <div className="row">
+                <button className="btn small" onClick={async () => { await api(`/api/bookings/${b.id}/plan`, { method: 'POST', headers, json: { text: plans[b.id] ?? b.carePlan?.text ?? '' } }); load(); }}>Save plan</button>
+                {b.carePlan && <small className="faint">Saved {new Date(b.carePlan.at).toLocaleDateString()}</small>}
+              </div>
             </div>
           ))}
         </div>
@@ -88,7 +95,7 @@ export default function DoctorPortal() {
           <h3>{open ? 'Chat' : 'Select a booking to chat'}</h3>
           {open && (
             <>
-              <div className="chat">{msgs.map((m) => <div key={m.id} className={`bubble ${m.from === 'professional' ? 'user' : 'assistant'}`}>{m.text}</div>)}</div>
+              <div className="chat">{msgs.map((m) => <div key={m.id} className={`bubble ${m.from === 'professional' ? 'user' : 'assistant'}`}>{m.urgent && <span className="badge danger" style={{ marginBottom: 6 }}>⚠ possible risk: follow up now</span>}<div>{m.text}</div></div>)}</div>
               <div className="row">
                 <input value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Reply (works with Wispr Flow dictation)" style={{ flex: 1 }} />
                 <button className="btn primary" onClick={async () => { if (!reply.trim()) return; await api(`/api/bookings/${open}/messages`, { method: 'POST', headers, json: { text: reply } }); setReply(''); setMsgs(await api<Msg[]>(`/api/bookings/${open}/messages`, { headers })); }}>Send</button>
