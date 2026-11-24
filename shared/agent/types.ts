@@ -6,6 +6,7 @@ import type { CareLevel } from '../clinical/instruments';
 
 export type AgentAction =
   | { type: 'CRISIS' }
+  | { type: 'EMERGENCY' }
   | { type: 'START_PANIC' }
   | { type: 'START_ERP'; episode: EpisodeExtraction }
   | { type: 'DECLINE_REASSURANCE'; loop: boolean }
@@ -16,6 +17,8 @@ export type AgentAction =
   | { type: 'BOOK_PROFESSIONAL' }
   | { type: 'CONFIRM'; question: string; candidate: AgentAction }
   | { type: 'OPEN_EXPOSURE' };
+
+export type PressureTactic = 'fact' | 'bargain' | 'guilt' | 'proxy';
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
@@ -32,6 +35,8 @@ export interface AgentContext {
 }
 
 export interface AgentResponse {
+  /** Which pressure tactic was recognised, if any (fact, bargain, guilt, proxy). */
+  tactic?: PressureTactic | null;
   reply: string;
   actions: AgentAction[];
   intent: Classification['intent'];

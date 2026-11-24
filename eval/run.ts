@@ -22,7 +22,7 @@ import { tokens } from '../shared/nlp/normalize';
 import { classificationReport, confusionMatrix, macroF1, nbPredictProba, stratifiedKFold, trainNaiveBayes } from '../shared/ml/core';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CLASSES = ['SELF_HARM', 'PANIC', 'REASSURANCE', 'URGE', 'DIARY', 'UNCLEAR'];
+const CLASSES = ['SELF_HARM', 'EMERGENCY', 'MEDICAL', 'PANIC', 'REASSURANCE', 'URGE', 'DIARY', 'UNCLEAR'];
 const GATE = 0.99;
 
 const texts = EVAL_SET.map((e) => e.text);
@@ -109,6 +109,13 @@ md.push('- The seed set was written by the project team; the rules were develope
 md.push('- Real-world speech-recognition errors and clinician labelling are needed before clinical use.');
 md.push('- Tamil and Bengali coverage is small and needs native-speaker review.', '');
 writeFileSync(join(ROOT, 'eval/RESULTS.md'), md.join('\n'));
+writeFileSync(join(ROOT, 'shared/ml/eval-summary.json'), JSON.stringify({
+  items: EVAL_SET.length,
+  systems: systems.map((s) => ({ name: s.name, accuracy: Number(f(s.acc)), macroF1: Number(f(s.macroF1)), selfHarmRecall: Number(f(s.rep.SELF_HARM.recall)), panicRecall: Number(f(s.rep.PANIC.recall)) })),
+  byLanguage: byLang.map((l) => ({ ...l, acc: Number(f(l.acc)) })),
+  holdout: { items: HOLDOUT_SET.length, accuracy: Number(f(hoAcc)), selfHarmRecall: Number(f(hoRep.SELF_HARM.recall)), safetyCatch: Number(f(hoSafetyCatch)) },
+  gate: { threshold: GATE, passed: gatePassed },
+}, null, 2));
 
 systems.forEach((s) => console.log(`${s.name.padEnd(30)} acc ${f(s.acc)}  macroF1 ${f(s.macroF1)}  self-harm recall ${f(s.rep.SELF_HARM.recall)}`));
 byLang.forEach((l) => console.log(`  ${l.lang.padEnd(9)} n=${l.n} acc ${f(l.acc)}`));

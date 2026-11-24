@@ -15,7 +15,8 @@
     "test": "vitest run",
     "eval": "tsx eval/run.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "ml": "tsx ml/pipeline.ts"
+    "ml": "tsx ml/pipeline.ts",
+    "lab": "tsx lab/run.ts"
   },
   "dependencies": {
     "express": "^4.21.1",

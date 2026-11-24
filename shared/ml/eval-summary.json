@@ -1,0 +1,63 @@
+{
+  "items": 145,
+  "systems": [
+    {
+      "name": "Rules (full set)",
+      "accuracy": 0.993,
+      "macroF1": 0.993,
+      "selfHarmRecall": 1,
+      "panicRecall": 1
+    },
+    {
+      "name": "Naive Bayes (5-fold CV)",
+      "accuracy": 0.538,
+      "macroF1": 0.557,
+      "selfHarmRecall": 0.4,
+      "panicRecall": 0.48
+    },
+    {
+      "name": "Hybrid, shipped (5-fold CV)",
+      "accuracy": 0.993,
+      "macroF1": 0.993,
+      "selfHarmRecall": 1,
+      "panicRecall": 1
+    }
+  ],
+  "byLanguage": [
+    {
+      "lang": "en",
+      "n": 67,
+      "acc": 1
+    },
+    {
+      "lang": "hinglish",
+      "n": 47,
+      "acc": 0.979
+    },
+    {
+      "lang": "hi",
+      "n": 11,
+      "acc": 1
+    },
+    {
+      "lang": "ta",
+      "n": 10,
+      "acc": 1
+    },
+    {
+      "lang": "bn",
+      "n": 10,
+      "acc": 1
+    }
+  ],
+  "holdout": {
+    "items": 21,
+    "accuracy": 0.762,
+    "selfHarmRecall": 0.25,
+    "safetyCatch": 1
+  },
+  "gate": {
+    "threshold": 0.99,
+    "passed": true
+  }
+}

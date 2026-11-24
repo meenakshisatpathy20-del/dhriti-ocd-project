@@ -1,6 +1,6 @@
 import { containsPhrase, tokens } from './normalize';
 
-export type CompulsionType = 'washing' | 'checking' | 'ordering' | 'counting' | 'reassurance' | 'mental' | 'other';
+export type CompulsionType = 'washing' | 'checking' | 'ordering' | 'counting' | 'reassurance' | 'harm' | 'religious' | 'mental' | 'other';
 
 export interface EpisodeExtraction {
   compulsion: CompulsionType;
@@ -39,6 +39,18 @@ const PATTERNS: { type: CompulsionType; words: string[]; urge: string; fear: str
     words: ['ask', 'sure', 'pakka', 'confirm', 'poochna', 'पूछ', 'உறுதி', 'নিশ্চিত'],
     urge: 'Ask someone for certainty',
     fear: 'Not being completely certain',
+  },
+  {
+    type: 'harm',
+    words: ['hurt', 'hurting', 'harm', 'harming', 'knife', 'stab', 'push', 'attack', 'violent', 'nuksan', 'chaku', 'maar', 'चाकू', 'கத்தி', 'ছুরি'],
+    urge: 'Get certainty that I would never act on the thought',
+    fear: 'Acting on a thought I do not want',
+  },
+  {
+    type: 'religious',
+    words: ['sin', 'sinned', 'confess', 'confession', 'god', 'mass', 'church', 'catechism', 'priest', 'blasphemous', 'blasphemy', 'forgive', 'forgiven', 'paap', 'bhagwan', 'pooja', 'पाप', 'भगवान', 'பாவம்', 'পাপ'],
+    urge: 'Confess, pray or ask to undo the thought',
+    fear: 'Having sinned or offended God',
   },
   {
     type: 'mental',

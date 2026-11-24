@@ -7,6 +7,8 @@
 
 export type Intent =
   | 'SELF_HARM'
+  | 'EMERGENCY'
+  | 'MEDICAL'
   | 'PANIC'
   | 'REASSURANCE'
   | 'URGE'
@@ -45,6 +47,28 @@ export const SELF_HARM: LexEntry[] = [
   ),
 ];
 
+/**
+ * Real-world emergencies: an act has happened or someone is injured right now.
+ * This is about function, not content: an intrusive thought about harm (no act,
+ * unwanted, resisted) is OCD and must NOT land here.
+ */
+export const EMERGENCY: LexEntry[] = [
+  ...e(3,
+    'shook him', 'shook her', 'shook the baby', 'shook my baby', 'floppy', "he's not breathing", 'he is not breathing',
+    "she's not breathing", 'she is not breathing', "isn't breathing", 'not breathing properly', 'stopped breathing',
+    'unconscious', "won't wake up", 'will not wake up', 'took pills', 'took an overdose', 'overdose', 'swallowed poison',
+    'drank poison', 'hit him hard', 'hit her hard', 'bleeding heavily', "won't stop bleeding", 'seizure', 'fitting',
+    'hila diya', 'behosh', 'saans nahi le raha', 'saans nahi le rahi', 'zehar kha', 'khoon ruk nahi raha',
+    'बेहोश', 'ज़हर', 'जहर', 'மயக்கம்', 'বেহুঁশ', 'অজ্ঞান',
+  ),
+];
+
+/** Practical health questions with a real injury or illness. Give practical guidance; never treat as OCD. */
+export const MEDICAL: LexEntry[] = [
+  ...e(3, 'tetanus', 'deep cut', 'cut my hand', 'cut my finger', 'cut myself on', 'dog bite', 'bitten by', 'burned my', 'burnt my', 'broke my', 'fracture', 'stitches', 'chot lagi', 'ghaav', 'kat gaya'),
+  ...e(2, 'wound', 'injury', 'injured', 'sprain', 'high fever', 'bad flu', 'vomiting', 'rash', 'bukhar', 'चोट', 'बुखार', 'காயம்', 'காய்ச்சல்', 'ক্ষত', 'জ্বর'),
+];
+
 export const PANIC: LexEntry[] = [
   ...e(3,
     'panic attack', "can't breathe", 'cannot breathe', 'can not breathe', 'not able to breathe',
@@ -73,7 +97,19 @@ export const REASSURANCE: LexEntry[] = [
     'bolo na ki', 'pakka na', 'पक्का', 'सच में', 'कहीं मैं', 'साफ है ना', 'बंद है ना',
     'உறுதியா', 'நிச்சயமா', 'சுத்தமா இருக்கா', 'নিশ্চিত তো', 'নিশ্চিত', 'ঠিক আছে তো', 'পরিষ্কার তো',
   ),
-  ...e(2, 'pakka'),
+  // Reassurance under pressure: the tactics people with OCD really use (fact, bargain, guilt, proxy).
+  ...e(3,
+    'tell me i would never', 'tell me i will never', 'would never actually', 'just this once', 'just confirm',
+    'yes or no', "i didn't mean it", 'didn\'t mean it did i', "aren't sins", 'is it a sin', 'am i forgiven', 'should i confess',
+    'to be safe', 'not asking for reassurance', 'not asking you to reassure', 'asking for a fact', "facts aren't reassurance",
+    'just the statistic', 'just say it once', 'say it once', 'just say it', 'just tell me the teaching', 'just tell me the facts',
+    'purely academically', "that's not washing", 'not really washing', 'is it dangerous', 'are germs dangerous',
+    'ask him to tell me', 'ask her to tell me', 'tell me i\'m a good', 'can bin germs', 'can germs',
+  ),
+  ...e(2, 'pakka', 'honest question', 'real friend would', "you're being cruel", 'because of you', 'is that what therapy',
+    'official health advice', 'what does the nhs', 'what does the cdc', 'what does the catechism', 'compromise', 'just a wipe', 'baby wipe',
+    "that's fine right", "that's okay isn't it", 'can i use', "i'll ask my", "i'll text", 'wake my husband', 'ask my sister', 'ask my mother',
+    'gambling with my soul', 'how can you be so cold'),
   ...e(1, 'sure', 'certain', 'guarantee'),
 ];
 
@@ -103,6 +139,8 @@ export const DIARY_HINTS: LexEntry[] = [
 
 export const LEXICON: Record<Exclude<Intent, 'UNCLEAR'>, LexEntry[]> = {
   SELF_HARM,
+  EMERGENCY,
+  MEDICAL,
   PANIC,
   REASSURANCE,
   URGE,

@@ -46,7 +46,34 @@ const REASSURING = [
   /\bsab theek hai\b/,
   /\bchinta mat (karo|kijiye)\b/,
   /\bkuch nahi hoga\b/,
+  /\byou would never\b/,
+  /\byou('| wi)ll never (do|act|hurt)\b/,
+  /\b(he|she|baby|child|daughter|son|kids?) (is|are|will be) (safe|fine) (with you)?\b/,
+  /\b(doesn'?t|does not|don'?t|do not) mean (that )?you('| wi)?ll? (act|do it|hurt)\b/,
+  /\bpeople with ocd (don'?t|do not|rarely|never) act\b/,
+  /\b(rarely|unlikely to) (cause|make)\b/,
+  /\b(the )?risk is (very )?(low|small|tiny)\b/,
+  /\b(unwanted|intrusive) thoughts (are not|aren'?t) (a )?sins?\b/,
+  /\byou (did not|didn'?t) (sin|mean it|choose)\b/,
+  /\bgod (knows your heart|forgives)\b/,
+  /\byou('| a)?re forgiven\b/,
 ];
+
+/** Risk framing: treating an intrusive thought as danger (crisis lines, distance, safety checks). */
+const RISK_FRAMING = [
+  /\b(put|keep|lock) (the |all )?(knives?|sharp)/,
+  /\b(step|stay|move|keep) away from (him|her|the baby|your baby|the child)\b/,
+  /\b(put|create|get) (some )?distance\b/,
+  /\b(leave|step into|go to) (the|another) room\b/,
+  /\bnot be alone with\b/,
+  /\b(is|are) (he|she|the baby|your baby|everyone) safe( right now)?\b/,
+  /\b(crisis line|helpline|emergency services|call 112|call 108|call 911|tele-manas)\b/,
+];
+
+export function hasRiskFraming(reply: string): boolean {
+  const n = normalize(reply);
+  return RISK_FRAMING.some((r) => r.test(n));
+}
 
 const DIAGNOSTIC = [
   /\byou (have|definitely have|are diagnosed with|suffer from) (ocd|obsessive)/,

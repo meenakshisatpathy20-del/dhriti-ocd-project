@@ -17,9 +17,15 @@ export interface Classification {
   riskCheck: boolean;
 }
 
+/**
+ * Self-directed only. Fears about harming others or about others dying are
+ * classic OCD content and must not trigger crisis framing.
+ */
 const SOFT_RISK = [
-  /\b(die|dying|dead|death|suicid\w*|kill|killing)\b/,
-  /\b(my life|living|no point|give up on everything|disappear forever|not wake up)\b/,
+  /\bsuicid\w*\b/,
+  /\b(want|wanna|wish|going|plan|planning|ready|like) (to )?(die|end it|disappear)\b/,
+  /\b(kill|killing) myself\b/,
+  /\b(my life|no point living|no point in living|not worth living|give up on everything|disappear forever|not wake up)\b/,
   /\b(hurt|harm|cut)\s+(myself|me)\b/,
   /\b(marna|marne|mar jau\w*|maut|zindagi|jeena|jeene|khud ko|apne aap ko)\b/,
   /(मरना|मरने|मर जा|मौत|ज़िंदगी|जिंदगी|जीना|खुद को|சாக|சாவ|உயிர்|வாழ|মরে|মরতে|মৃত্যু|বাঁচ|জীবন|নিজেকে)/,
@@ -30,7 +36,7 @@ export function softRisk(text: string): boolean {
   return SOFT_RISK.some((r) => r.test(n));
 }
 
-const PRIORITY: Exclude<Intent, 'UNCLEAR' | 'SELF_HARM'>[] = ['PANIC', 'REASSURANCE', 'URGE', 'DIARY'];
+const PRIORITY: Exclude<Intent, 'UNCLEAR' | 'SELF_HARM'>[] = ['EMERGENCY', 'PANIC', 'MEDICAL', 'REASSURANCE', 'URGE', 'DIARY'];
 
 /**
  * Fast, offline, multilingual intent classifier.
@@ -39,7 +45,7 @@ const PRIORITY: Exclude<Intent, 'UNCLEAR' | 'SELF_HARM'>[] = ['PANIC', 'REASSURA
  */
 export function classify(text: string): Classification {
   const toks = tokens(text);
-  const scores = { SELF_HARM: 0, PANIC: 0, REASSURANCE: 0, URGE: 0, DIARY: 0 };
+  const scores = { SELF_HARM: 0, EMERGENCY: 0, MEDICAL: 0, PANIC: 0, REASSURANCE: 0, URGE: 0, DIARY: 0 };
   const matches: string[] = [];
 
   for (const [intent, entries] of Object.entries(LEXICON) as [keyof typeof scores, typeof LEXICON.URGE][]) {
@@ -61,6 +67,11 @@ export function classify(text: string): Classification {
 
   if (scores.SELF_HARM > 0) {
     return { intent: 'SELF_HARM', confidence: 1, scores, matches, script, safetyOverride: true, riskCheck: false };
+  }
+
+  // A real emergency always outranks everything except self-harm.
+  if (scores.EMERGENCY >= 3) {
+    return { intent: 'EMERGENCY', confidence: 1, scores, matches, script, safetyOverride: true, riskCheck };
   }
 
   let best: Intent = 'UNCLEAR';

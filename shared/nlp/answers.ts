@@ -49,10 +49,11 @@ export function parseOption(text: string, options: string[]): number | null {
   let best = -1;
   let bestScore = 0;
   options.forEach((opt, i) => {
-    const optToks = tokens(opt).filter((t) => t.length > 2);
+    // Keep digits ("8 hours") and content words; prefer the option with more matched words on ties.
+    const optToks = tokens(opt).filter((t) => t.length > 2 || /^\d+$/.test(t));
     if (optToks.length === 0) return;
     const hit = optToks.filter((t) => toks.includes(t)).length;
-    const score = hit / optToks.length;
+    const score = hit / optToks.length + hit * 0.01;
     if (score > bestScore) {
       bestScore = score;
       best = i;
