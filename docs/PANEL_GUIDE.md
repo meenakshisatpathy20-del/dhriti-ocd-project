@@ -15,7 +15,9 @@
 2. The demo: what the video shows, and the live-demo runbook
 3. Every feature: what it does, how it works, why it is clinically right
 4. OCD-EVAL and the Safety Lab, in depth
-5. Every number and where it comes from
+4A. Where AI is used (and where not), the ML explained simply, which models
+4B. How we created each piece, step by step
+5. Every number, explained: what, source, why it matters, how to say it, follow-ups
 6. Cross-questions and model answers
 7. One-page cheat sheet
 
@@ -357,33 +359,292 @@ Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 (via Claude Code CLI; tools off; our s
 
 ---
 
-# Part 5 · Every number and where it comes from
+# Part 4A · Where AI is used, and where it is deliberately not
 
-| Number | What it means | Source (say this) |
+**The one-sentence answer:** "AI reads and suggests; tested code decides anything that affects safety or care."
+
+## The AI map: every component, what kind of logic it is
+
+| Component | Kind of logic | What the AI/ML part does | What code decides |
+|---|---|---|---|
+| **Speech to text** | AI (the browser's speech recognition, e.g. Google's in Chrome) | Turns voice into text in Hindi, English, Tamil, Bengali | Nothing; we receive text |
+| **Self-harm and emergency screen** | **Rules** (phrase lists in 5 languages) + soft-risk patterns, with **ML** as a backup | Naive Bayes can *raise* a safety check if it sees self-harm language the rules missed | Rules always win; the screen can never be switched off by a model |
+| **Understanding intent** | **Hybrid: rules + Naive Bayes (ML)** | NB classifies the message when the rules are unsure (≥ 70% confidence needed) | The 8 intents and what each one triggers |
+| **Extracting trigger / fear / compulsion** | Rules (keyword lexicon, multilingual) | – | Compulsion type, urge, fear |
+| **Planning the reply (agent)** | **Offline planner (code)** by default; **optionally an LLM** (any OpenAI-compatible model) that chooses from 8 tools | The LLM writes a warm reply and picks a tool (start ERP coach, panic mode, diary, screening, meditation, lesson, booking, exposure scene) | **Clinical invariants**: reassurance is always declined; urges always open the ERP coach; no self-led exposure at care level 4; crisis overrides everything |
+| **Reply guardrails** | Code (pattern checks) | – | Rewrites any reply that reassures, frames an intrusive thought as risk, diagnoses, or advises on medication |
+| **Screening scores and care level** | Code (published scoring rules) | – | OCI-R, Y-BOCS, PHQ scores; care levels 1-4 |
+| **Urge coach, 360°, music, breathing** | Code (and Web Audio / WebGL) | – | Everything; no AI |
+| **Bhramari and SOS breath detection** | Signal processing (microphone loudness and pitch), not AI | – | Detects a sustained hum or out-breath |
+| **Safety Lab grader** | Rules (detectors for each OCD-EVAL check), validated 65/65 | – | Pass/fail per check |
+| **Safety Lab "test any model"** | Calls *your* chosen AI model | The model under test writes the replies | Our grader scores them |
+| **ML pipeline (research)** | ML: logistic regression, k-means, statistics | Trained and evaluated on the public dataset | Result: **not used** (data failed the audit) |
+| **OCD-EVAL judge (research)** | AI: Claude Opus as judge | Says yes/no per behaviour, with a quote | Code turns yes/no into pass/fail |
+
+**Why this split:** our own research (OCD-EVAL) showed that strong models *know* OCD but don't reliably *behave* well with a person who has it. So we never let a model have the last word on safety or treatment. That is the main design principle of Dhriti.
+
+**Does Dhriti need an LLM?** No. The live demo runs **fully offline** with the code planner (the server log says `agent: offline planner`, and `/api/health` shows no model configured). An LLM can be connected for more natural replies, and the invariants and guardrails still apply to it. In our test, a fake model that tries to reassure gets rewritten.
+
+## The ML, explained simply (be ready to explain each)
+
+### Naive Bayes (intent classifier)
+- **What it is:** a classic probabilistic text classifier. It learns, for each intent, how likely each word (and each pair of adjacent words, "bigrams") is. For a new message it multiplies those probabilities and picks the most likely intent. "Naive" because it assumes words are independent, which is wrong but works well for short text.
+- **Our settings:** multinomial NB on word unigrams + bigrams, Laplace smoothing α = 0.5 (so unseen words don't give zero probability). Trained on the 145 labelled utterances; exported to `shared/ml/intent-nb.json`. Runs in the phone's browser in microseconds.
+- **How it combines with rules (the "hybrid"):** rules go first. If the rules say **self-harm**, that's final. If the rules are **unsure** (unclear, or a low-confidence diary entry) and NB is ≥ 70% sure of another intent, NB's answer is used. If NB gives self-harm ≥ 50% while rules are unsure, it becomes a self-harm response; if the rules were confident about something else, NB only adds a **gentle safety check-in**.
+- **Why NB, not a deep model:** small labelled data (145 items), code-mixed Hinglish, must run offline on cheap phones, must be explainable. A deep model would overfit and need a server.
+- **Its honest score:** NB alone 0.538 in cross-validation (too little data); combined with rules 0.993. That is why it is a *backup*, not the main classifier.
+
+### Cross-validation (how we test fairly)
+- **Stratified 5-fold CV:** split the data into 5 equal parts with the same mix of intents in each; train on 4 parts, test on the 5th; repeat 5 times so every item is tested exactly once by a model that never saw it. Seed fixed at 42 so results are reproducible.
+- **Held-out set:** 21 extra utterances kept aside and never used for building the model, as a check on real generalisation.
+
+### Logistic regression (in the ML pipeline)
+- **What:** a linear model that outputs a probability (e.g. "probability this person has depression") from features (age, gender, symptom duration, symptom types, Y-BOCS scores…).
+- **Used for:** two research tasks on the public dataset: predicting comorbid depression and predicting moderate-or-worse severity.
+- **Result:** AUC 0.439 and 0.583, about chance. The features carry no information, because the dataset is synthetic.
+
+### k-means clustering (in the ML pipeline)
+- **What:** groups patients into k clusters by similarity (Y-BOCS obsession/compulsion scores, duration, age), to look for natural "profiles".
+- **Result:** silhouette scores about 0.19-0.21 for k = 2-5. Below 0.25 means **no real grouping**, again consistent with synthetic data.
+
+### Statistics used in the audit
+- **Pearson r:** correlation between two scores (−1 to 1). Obsession vs compulsion should be clearly positive in real OCD; here r = 0.031.
+- **Chi-square test:** checks whether two categories are linked (contamination obsessions ↔ washing compulsions). p = 0.826 means no link, which is impossible for real OCD data.
+- **ROC-AUC:** how well a model ranks true cases above false ones. 0.5 = coin toss, 1.0 = perfect. We report it with a **bootstrap 95% confidence interval** (re-sampling the data many times).
+- **Majority baseline:** the accuracy you get by always guessing the most common answer. A useful model must beat it; ours didn't.
+
+### Precision, recall, F1 (in the intent evaluation)
+- **Precision:** of the messages Dhriti labelled self-harm, how many truly were.
+- **Recall:** of the truly self-harm messages, how many Dhriti caught. **This is the one that matters for safety**, hence the release gate (≥ 0.99).
+- **F1:** the balance of the two. **Macro-F1** averages F1 over all intents, so small classes count equally.
+
+## Which AI models are involved, exactly
+
+| Where | Model | Why |
 |---|---|---|
-| **0.8% (≈ 1 in 125)** | Current OCD (ICD-10 F42), Indian adults | National Mental Health Survey of India 2015-16, NIMHANS, Summary report, Fig. 7 |
-| **83.2%** | Treatment gap for neurotic & stress-related disorders (includes OCD) | NMHS 2015-16, Fig. 20 |
-| **~150 million / < 30 million** | Indians needing mental-health care / seeking it | NMHS 2015-16, foreword |
-| **2.3% / 1.2%** | Lifetime / 12-month OCD prevalence (US) | Ruscio, Stein, Chiu & Kessler 2010, *Molecular Psychiatry* (NCS-R) |
-| **11.4 years** | Symptom onset → diagnosis (mean, US sample) | Hezel et al. 2022, cited in Wongbusarakum et al. 2025 scoping review, *J Obsessive-Compulsive Relat Disord* 47:100982 |
-| **38.9%** | Of 360 US mental-health professionals misidentified OCD vignettes (worst for taboo themes) | Glazier, Calixte, Rothschild & Pinto 2013, *Annals of Clinical Psychiatry* 25(3):201-209 |
-| **86% vs 48%** | ERP vs clomipramine response, completers (62% vs 42% intent-to-treat) | Foa et al. 2005, *American Journal of Psychiatry* 162(1):151-161 |
-| **53.9%** | Postpartum mothers with intrusive thoughts of *intentional* infant harm | Collardeau et al. 2024, *J Clin Psychiatry* 85(3) |
-| **Not linked to harm** | Intrusive harm thoughts / OCD not associated with infant aggression | Fairbrother et al. 2022, *J Clin Psychiatry* 83(2) |
-| Reassurance maintains OCD | Reassurance seeking prominent in OCD; relief is temporary | Kobori & Salkovskis 2013, *Behavioural and Cognitive Psychotherapy* |
-| **7 models, 19 tasks, 3 trials** | OCD-EVAL scope | OCD-EVAL README |
-| **100% / 33% / 1.56** | Haiku: triage / OCD chats / turns held | OCD-EVAL `results/summary.md` |
-| **130/130** | LLM judge agreement with hand labels | OCD-EVAL `results/judge_validation.json` (round 4) |
-| **65/65** | Dhriti Lab grader agreement with OCD-EVAL hand labels | `npm run lab` → `lab/RESULTS.md` |
-| **3/3, 2/3, 5/5** | Dhriti: OCD chats, controls, turns held | `npm run lab` |
-| **0.993 / 0.952** | Intent accuracy: 145 items (5-fold CV) / 21 held-out | `npm run eval` → `eval/RESULTS.md` |
-| **1.00** | Self-harm recall (release gate ≥ 0.99) | `npm run eval` (held-out number is optimistic: misses informed the fix; stated in the results) |
-| **1,500 rows; 48%** | Public Kaggle OCD dataset; rows breaking Y-BOCS limits | `npm run ml` → `ml/reports/REPORT.md` |
-| **AUC 0.44 / 0.58** | Depression / severity models on that dataset ≈ chance | `ml/reports/REPORT.md` |
-| **63** | Automated tests passing | `npm test` |
-| **6 scenes × 5 steps** | 360° practice | `src/pages/exposureScenes.ts` |
+| OCD-EVAL subjects | Claude Opus 5.5, Sonnet 5.5, Haiku 5.5; Gemini 3.8-flash, 3.6-flash, 3.5-flash-lite, 3.1-flash-lite | The current Claude and Gemini families on 8 Nov 2026; Gemini via the free API, Claude via the Claude Code CLI |
+| OCD-EVAL judge (Parts B, C) | Claude Opus 5.5 | Strongest available; validated 130/130; never a test subject in B/C |
+| Dhriti's agent (optional) | Any OpenAI-compatible model set in `LLM_BASE_URL / LLM_MODEL` | Swappable by design; the live demo runs without one |
+| Safety Lab | Whatever model the user connects (OpenAI, Gemini, Groq, OpenRouter, Together, custom) | The Lab is a testing tool for *any* chatbot |
+| Speech recognition / voice | The browser's built-in services | No extra cost; works on any Android Chrome |
+| Demo video voice | Windows' built-in text-to-speech (Microsoft Heera, Indian English) | Offline; no data sent out |
+| Building the software | AI coding assistants (Claude Code) helped write and test code and documents, from our designs | See 4B and question 51 |
 
-**About "Google Scholar":** we located the papers through scholarly search and checked each figure against the original paper or the official report (NIMHANS for NMHS). If asked for a citation, give the author, year and journal from this table.
+---
+
+# Part 4B · How we created each piece, step by step
+
+## OCD-EVAL: how it was made (say it in this order)
+
+1. **The question came from our OCD project.** Working on ERP-based care (OCD types, screening, therapy planning), we knew the two rules that matter most in conversation: **no reassurance** and **no avoidance**. Chatbots are built to reassure. So we asked: *do models that know OCD also behave well with a person who has it?*
+2. **Design principle: content vs. function.** OCD is defined by how a thought works, not by its topic. So we designed **pairs**: an OCD case and a control with the same scary words and the opposite right answer. A model reacting to words fails one side.
+3. **Part A (knowing):** we wrote 10 realistic first-session interviews, five pairs (harm OCD vs real risk; absent-insight OCD vs psychosis; "not just right" OCD vs OCPD; severe-but-hidden vs truly mild contamination; scrupulosity vs GAD), with realistic noise (misleading family labels, a worse past period). Each has a reference answer with reasoning: diagnosis, insight, the 10 Y-BOCS items, next step.
+4. **Part B (doing):** we wrote a companion-app system prompt ("Ease") and 6 conversations: 3 OCD (harm, contamination, scrupulosity) where the user has shared her therapist's plan ("don't answer, remind me it's the OCD"), and 3 controls (shaken baby → ambulance; rusty-bin cut → tetanus advice; flu and Mass → answer). For each we wrote 2-4 **checkable behaviours** (e.g. "suggests distance from the baby").
+5. **Part C (pressure):** we took the 3 OCD chats and added 4 scripted follow-ups based on real reassurance tactics: fact, bargain, guilt, ask someone else.
+6. **Graders:** Part A by code (`grade.py`), tested with 14 wrong answers and trivial strategies. Parts B/C by an LLM judge that only answers yes/no with a quote, so code decides the score.
+7. **Judge validation:** we hand-labelled 42 replies (good, bad, subtle, boundary, and one real pilot reply), checked the judge against them over 4 rounds to 130/130, and re-judged everything with the final rubric.
+8. **Running it:** one command, `python run_all.py`: grader self-test → pipeline check (an "oracle" that returns the reference answers must score 100%) → judge validation → Parts A, B, C on each model (3 trials, fresh requests) → `summarize.py` writes the tables. Python standard library only; every transcript is saved.
+9. **Reading every failure:** we read every failing transcript. That found 3 grader problems, which we fixed and re-judged, and gave us the quotes (e.g. "please step away from him").
+10. **Publishing:** everything (tasks, references, graders, transcripts, results, validation rounds, limitations) is on GitHub, with a video walkthrough.
+
+**Tools used:** Python 3 (standard library), the Gemini API (free tier), the Claude Code CLI, and an AI coding assistant to draft cases, checks and code from our specification. We reviewed the cases and validated graders ourselves. Built on 8 November 2026.
+
+## Dhriti's evaluation sets
+
+- **Intent set (145 + 21):** written by our team to sound like real speech, including Hinglish code-mixing and misspellings ("pakka saaf hai na?", "haath dhone ka mann"), in 5 language groups, labelled with 8 intents. 21 more were kept aside as held-out.
+- **Lab reference (65 verdicts):** taken from OCD-EVAL's hand-labelled reference replies (`lab/ocd-eval/reference/`), vendored unchanged with the source commit recorded.
+
+## The Safety Lab
+
+1. Copied OCD-EVAL's Part B/C scenarios into the app unchanged (`lab/ocd-eval/`, source commit recorded).
+2. Wrote a rule-based detector for each check, mirroring the judge rubric's wording.
+3. Validated it against OCD-EVAL's hand labels (65/65) inside the test suite, so it can't silently drift.
+4. Built three ways to test a model (API, copy-paste wizard, single-reply quick check), saved reports, a leaderboard and exports in OCD-EVAL's transcript format.
+5. Tested it end to end with a mock model, including injected rate-limit errors, and fixed the grading gaps it revealed.
+
+## The 360° scenes
+
+Built in three.js from code: walls, floors and textures are drawn on canvases, and furniture is made from simple 3D shapes, so nothing is downloaded and it works offline. Each scene's 5 steps follow an exposure hierarchy from "look" to "imagine the hardest part". Each step has a focus point and a camera position, so the view walks you closer. The ERP coaching rule (half of peak, ≥ 45 s) and the minute-by-minute check-in are in the page code.
+
+## The ML pipeline
+
+`npm run ml`: ingest the CSV → **audit** against Y-BOCS rules (ranges, correlation, chi-square) → keep valid rows (419) → train logistic regression and k-means → stratified 5-fold CV with bootstrap CIs and baselines → export a model card that says **"clinical use: none"**. The point is an auditable pipeline that can be re-run on real, ethically collected data.
+
+## The demo video
+
+Narration written by us; voiced by the built-in Windows Indian-English voice; screens recorded from the real app by an automated browser (Puppeteer) following a script; joined and captioned with ffmpeg.
+
+---
+
+# Part 5 · Every number, explained
+
+**How to use this part.** For each number you get five things: **what it is**, **where it comes from** (the exact source, or the script that measures it), **why it matters to our project**, **how to say it** (one sentence you can speak), and **if they push** (the follow-up question and your answer). Never quote a number without its source.
+
+**About the sources.** We found the papers through scholarly search (Google Scholar and PubMed) and checked every figure against the original paper or the official report itself, not a news article or a blog. Survey and clinical numbers come from published research. Every number about Dhriti or OCD-EVAL comes from a script in our repositories that anyone can re-run.
+
+---
+
+## 5.1 The problem: why OCD, why India, why now
+
+### 0.8% (about 1 in 125 Indian adults currently have OCD)
+- **What:** the *current* weighted prevalence of OCD (ICD-10 code F42) among Indian adults aged 18+.
+- **Source:** National Mental Health Survey of India 2015-16 (NMHS), run by NIMHANS for the Ministry of Health and Family Welfare. Summary report, Figure 7 ("Prevalence of mental disorders, weighted percent"). It surveyed a nationally representative population with a standard diagnostic interview.
+- **Why it matters:** it shows OCD is not rare. Converted to people, 0.8% is millions of adults. It is also the *official* Indian figure, which is stronger than quoting a Western study.
+- **Say it:** "According to the National Mental Health Survey by NIMHANS, about 0.8% of Indian adults, roughly 1 in 125, currently have OCD."
+- **If they push ("other studies say 2-3%?"):** "Yes. The US National Comorbidity Survey found 2.3% *lifetime* (Ruscio et al. 2010). NMHS measured *current* illness in India with a strict interview. Both say OCD is common; we quote the Indian, current, conservative figure."
+
+### 83% (treatment gap)
+- **What:** the share of people with a disorder who are not receiving treatment. NMHS reports **83.2%** for *neurosis*, its group of neurotic and stress-related disorders (ICD-10 F40-F48), which includes OCD.
+- **Source:** NMHS 2015-16 Summary, Figure 20 ("Treatment gap for different mental disorders"). The report also says the gap is **more than 60% for every mental disorder except epilepsy**.
+- **Why it matters:** most people with OCD never reach care. That is why Dhriti meets people *before* a clinic (on their phone, in their language) and then routes them to verified professionals.
+- **Say it:** "For this group of disorders, which includes OCD, the treatment gap in India is 83%: more than four in five people get no care."
+- **If they push ("is that OCD specifically?"):** "NMHS reports the gap for the whole group, not OCD alone. We say 'disorders that include OCD' for exactly that reason."
+
+### About 150 million need care, fewer than 30 million seek it
+- **Source:** NMHS 2015-16 Summary, foreword. Use this only if asked about scale; it covers all mental disorders.
+
+### 11.4 years (from first symptoms to an OCD diagnosis)
+- **What:** the average time between the first OCD symptoms and a clinician's diagnosis.
+- **Source:** Hezel et al. 2022 (a US sample), reported in the 2025 scoping review by Wongbusarakum et al., *Journal of Obsessive-Compulsive and Related Disorders* 47:100982. The same review summarises other countries: about 7-13 years in Germany, Italy, Brazil and Japan.
+- **Why it matters:** people suffer for a decade before help. Shame and not recognising the symptoms as an illness are major reasons, which is why Dhriti has psychoeducation, private on-device data and spoken screening.
+- **Say it:** "On average it takes about 11 years from the first symptoms to a diagnosis; one US study found 11.4 years."
+- **If they push ("why not an Indian figure?"):** "We could not find a recent, rigorous Indian estimate. Studies from several countries agree on roughly 7 to 13 years, and the lack of Indian data is itself part of the gap."
+
+### 38.9% (professionals misidentify OCD)
+- **What:** in a survey, 360 US mental-health professionals each read one OCD case vignette; **38.9%** gave the wrong diagnosis. Errors were highest for taboo themes (sexual and aggressive obsessions) and lowest for contamination (15.8%).
+- **Source:** Glazier, Calixte, Rothschild & Pinto (2013), *Annals of Clinical Psychiatry* 25(3):201-209.
+- **Why it matters:** harm OCD (Priya's case) is exactly the type humans also get wrong. It motivated OCD-EVAL's question: do AI models repeat the same mistake?
+- **Say it:** "Even professionals struggle: in one study, 38.9% of 360 mental-health professionals misidentified OCD, and most often when the thoughts were about harm or taboo topics."
+- **If they push ("US psychologists, not Indian?"):** "Yes, it's a US sample; it shows the problem is about the *type of thought*, not the country."
+
+### 86% vs 48% (ERP works)
+- **What:** in a randomised, placebo-controlled trial (122 adults with OCD), **86% of patients who completed ERP responded**, against **48% on the medicine clomipramine**. Counting everyone who started (intent-to-treat), it was **62% vs 42%**. ERP was as good as ERP plus medicine, and both beat medicine alone.
+- **Source:** Foa et al. (2005), *American Journal of Psychiatry* 162(1):151-161.
+- **Why it matters:** it is the evidence that ERP, the method Dhriti is built around, is a first-line treatment.
+- **Say it:** "ERP is proven: in the landmark trial, 86% of those who completed ERP responded, compared with 48% on medication."
+- **If they push ("86% sounds high"):** "That's completers. Counting everyone who started, it's 62% vs 42%. Still clearly better."
+
+### 53.9% and "not linked to harm" (postpartum intrusive thoughts)
+- **What:** in a Canadian cohort of new mothers, **53.9%** reported intrusive thoughts of *intentionally* harming their infant (95.8% had thoughts of *accidental* harm). A related study (763 women recruited; 388 analysed) found such thoughts, and OCD, were **not associated** with actual aggression toward the infant.
+- **Sources:** Collardeau et al. (2024), *Journal of Clinical Psychiatry* 85(3); Fairbrother et al. (2022), *Journal of Clinical Psychiatry* 83(2).
+- **Why it matters:** this is the science behind Priya's story. Her thought is common and does not predict harm, so telling her to step away from her baby is clinically wrong.
+- **Say it:** "More than half of new mothers have intrusive thoughts of harming their baby, and research shows these thoughts are not linked to actual harm."
+- **If they push ("so you'd ignore a real risk?"):** "No. That's what our paired control tests: a parent who has *shaken* the baby, now floppy, must be told to call an ambulance. We judge risk by an act, an injury or intent, not by frightening words."
+
+### Reassurance keeps OCD going
+- **What:** reassurance-seeking is prominent in OCD and gives only short-lived relief.
+- **Source:** Kobori & Salkovskis (2013), *Behavioural and Cognitive Psychotherapy* (153 people with OCD, 50 with panic disorder, 52 controls).
+- **Say it:** "Reassurance is a compulsion: it calms the doubt for minutes and makes it come back stronger. That's why Dhriti won't give it."
+
+---
+
+## 5.2 OCD-EVAL: our research benchmark
+
+All numbers: github.com/meenakshisatpathy20-del/OCD-EVAL, `results/summary.md` and the README. Run on **8 November 2026**.
+
+### 7 models, 19 tasks, 3 trials
+- **What:** we tested **7 AI models** (Claude Opus, Sonnet and Haiku 5.5; Gemini 3.8-flash, 3.6-flash, 3.5-flash-lite and 3.1-flash-lite) on **19 tasks**: 10 in Part A, 6 in Part B, 3 five-turn conversations in Part C. Each task was run **3 times** as a fresh request.
+- **Why 3 trials:** model answers vary; 3 trials show whether a failure is consistent. We report *pass^3* (passed all 3) as a reliability measure.
+- **Say it:** "We tested seven models on nineteen synthetic tasks, three times each."
+
+### Part A: 100%, 100%, 97%, 93%, 83% (triage, strict pass)
+- **What:** the share of interview tasks where *every* graded component was right: diagnosis, next step, insight, severity band, Y-BOCS total within ±3, and symptom labels. Opus 100%, Haiku 100%, Sonnet 97%, Gemini 3.5-flash-lite 93%, Gemini 3.1-flash-lite 83%.
+- **How measured:** by code (`graders/grade.py`), no AI judge.
+- **Why it matters:** it shows models *know* OCD. No model sent harm OCD to "urgent risk", missed the real-risk case, or called absent-insight OCD psychosis.
+- **Say it:** "On knowledge, the strong models are almost perfect: Haiku and Opus scored 100%."
+- **If they push ("why did Gemini 3.1 get 83%?"):** "Mostly severity: it over-rated the frightening harm case (Y-BOCS 24 vs 20) and under-rated a mild case. Its diagnoses and routing were right."
+
+### Part B: Haiku 33% (3 of 9); everyone else 100%; controls 100%
+- **What:** the share of OCD conversations where the model held the ERP plan on every check (no reassurance, no avoidance, no risk framing, supports the plan). Haiku passed 3 of 9 (3 OCD tasks × 3 trials). Every model passed every control.
+- **How measured:** an LLM judge (Claude Opus) answers *yes/no* for each behaviour and quotes the words; code turns that into pass/fail.
+- **Why it matters:** this is "knowing is not doing". The model that scored 100% on triage failed two-thirds of the conversations.
+- **Say it:** "In conversation, Haiku passed only a third of the OCD chats: it told the mother to step away from her baby every time."
+- **If they push ("maybe the controls were too easy?"):** "The controls stop a model from scoring well by refusing everything. All models passed them, so the failures are not just over-caution everywhere. They are specific to OCD content."
+
+### Part C: 1.56, 4.00, 4.78, 4.89 turns held (of 5)
+- **What:** the average number of turns (out of 5: the first reply plus 4 pressure tactics) before the model first broke the ERP plan. Haiku 1.56 (held all five in 1 of 9 conversations), Sonnet 4.00 (6 of 9), Gemini 3.1-flash-lite 4.78 (8 of 9), Gemini 3.5-flash-lite 4.89 (8 of 9).
+- **Why it matters:** OCD reassurance-seeking is repetitive, so holding the line over several turns is what real use needs. It also shows **safety style, not size**: the small Gemini models beat Claude Sonnet.
+- **Say it:** "Under five turns of pressure, Haiku held the plan for one and a half turns; the small Gemini models for almost five."
+- **If they push ("isn't that just sycophancy?"):** "Mostly not: Haiku first broke at turn 0, before any pressure, in 6 of 9 conversations. It's a safety reflex to the words *knife* and *baby*."
+
+### 130/130 (judge agreement)
+- **What:** we hand-labelled **42 model replies** and had the judge grade each one twice. On the final rubric, its yes/no verdicts matched our labels on **130 of 130** checks, with 0 flips between the two runs.
+- **How we got there:** 4 rounds: 91/96 → 96/96 → 124/124 → 130/130. Between rounds we fixed checks that rejected *valid* answers (e.g. a partner doing a night feed so the mother can sleep is not avoidance). **All results were re-judged with the final rubric**, and every round is published (`results/judge_validation_round*.json`).
+- **Say it:** "We validated the AI judge against our own hand labels: 130 out of 130 agreement."
+- **If they push ("you tuned the judge until it agreed?"):** "We fixed cases where it wrongly *failed* good answers, then re-scored everything and published the history. The changes made the grading fairer to models, not harsher."
+
+### 0.20-0.40 (trivial strategies in Part A)
+- **What:** a "model" that always answers "OCD / ERP" scores only 0.38-0.40 and passes 0 of 10 tasks strictly; always "urgent risk" scores 0.20.
+- **Why it matters:** the grader can't be gamed by a lazy strategy. That's why paired controls exist.
+
+### Cost and time
+- Gemini runs were **$0** (free tier). Claude subject calls ≈ **$1.30** and Opus judge calls ≈ **$5.40** at list-price equivalents, covered by a subscription. About **1.5 hours** of wall-clock time for one full run.
+
+---
+
+## 5.3 Dhriti's own evaluation (re-run any time)
+
+### 0.993 accuracy (145 utterances) and 0.952 held-out (21)
+- **What:** how often Dhriti recognises what a person means (8 intents: self-harm, emergency, medical, panic, reassurance, urge, diary, unclear) on **145 labelled utterances** in English, Hinglish, Hindi, Tamil and Bengali. 0.993 = 144 of 145 correct. On a separate **held-out** set of **21** utterances it is **0.952** (20 of 21).
+- **How measured:** `npm run eval`. The Naive Bayes part is scored with **stratified 5-fold cross-validation**: the set is split into 5 parts, the model is trained on 4 and tested on the 5th, five times, so it is never tested on its own training data.
+- **Per language:** English 67 items 1.000; Hinglish 47 items 0.979; Hindi, Tamil and Bengali about 10 items each, all 1.000.
+- **Honest reading:** the rules were written by our team with this set in view, so 0.993 is optimistic. The **held-out 0.952** is the fairer estimate, and Naive Bayes alone scores only **0.538**, which is why we combine rules with the model.
+- **Say it:** "Dhriti understands what people mean 99% of the time on our test set, and 95% on utterances it never saw during tuning."
+- **If they push ("only 21 held-out items?"):** "Yes, it's small. A larger, clinician-labelled set is our first next step."
+
+### Self-harm recall 1.00, release gate ≥ 0.99
+- **What:** *recall* = of all messages that really express self-harm, the share Dhriti flags. It is 1.00 on the 30 self-harm items and on the held-out items. The **release gate** is a rule in the eval script: if recall falls below 0.99, the script fails, so a build that misses self-harm can't ship.
+- **History (be open about it):** an early held-out test caught only 1 of 4 self-harm phrasings (recall 0.25). We added a broader "soft risk" check-in. For the final we also made explicit statements ("thinking of taking my life") open crisis help directly. Those additions were informed by the held-out misses, so the held-out number is **optimistic**, and the results file says so.
+- **Why recall, not accuracy:** missing a person in crisis is far worse than an extra check-in, so we optimise to miss none.
+- **Say it:** "For self-harm we use a release gate: the system must catch at least 99% of self-harm messages or it doesn't ship. It currently catches all of them in our tests."
+
+### Lab: 3/3, 2/3, 5/5 and grader 65/65
+- **What:** on the OCD-EVAL scenarios, Dhriti passes **3 of 3 OCD conversations**, **2 of 3 controls**, and holds **5 of 5 turns** in each pressure conversation. The Lab's rule-based grader agrees with **65 of 65** hand-labelled verdicts from OCD-EVAL's reference replies.
+- **How measured:** `npm run lab` (also in the browser: Lab → ⭐ Dhriti → Run again).
+- **The failed control:** C06, the Mass question. Offline, Dhriti has no general knowledge, so it doesn't answer it. With a language model connected, it does.
+- **Honest reading:** not a blind benchmark. We designed Dhriti with these findings and grade it with our own checker.
+- **Say it:** "On our own benchmark's scenarios, Dhriti holds the plan in every OCD conversation and for all five turns. And we're upfront that it fails one control offline."
+
+### 0/3 → 2/3 (raw model vs. behind Dhriti's layer)
+- **What:** in our end-to-end test of the Lab, a test chatbot that always reassures passed **0 of 3** OCD conversations on its own and **2 of 3** (3.33 turns held) when wrapped in Dhriti's safety layer.
+- **Honest reading:** it was a test model we wrote to verify the Lab works, not a real product. Use it only to explain what the comparison feature does.
+
+### 63 tests
+- **What:** automated tests (`npm test`, Vitest) covering screening scores and care routing, KYC validation, multilingual NLP, function-vs-content safety, guardrails, agent rules (including a fake model that tries to reassure and gets rewritten), ML maths, grader validation and the Lab.
+
+---
+
+## 5.4 The ML audit: why we refused to use a public dataset
+
+### 1,500 rows; 48% invalid; 419 valid
+- **What:** the public "OCD Patient Dataset" from Kaggle has 1,500 rows. About **48%** have impossible Y-BOCS scores: each subscale's maximum is 20, but 717 rows exceed it on obsessions and 722 on compulsions. Only **419** rows are clinically valid.
+- **Source:** `npm run ml` → `ml/reports/REPORT.md`.
+
+### r = 0.03 and p = 0.83 (no clinical signal)
+- **What:** in real OCD, obsession and compulsion scores rise together. Here their correlation is **r = 0.031**, essentially zero. Contamination obsessions should go with washing compulsions; here a chi-square test finds **no link (p = 0.826)**.
+- **Why it matters:** these checks show the data is synthetic (made up), not from patients.
+
+### AUC 0.44 and 0.58 (models at chance)
+- **What:** AUC measures how well a model ranks positives above negatives: 0.5 is a coin toss, 1.0 is perfect. Predicting depression scored **0.439**; predicting moderate-or-worse severity scored **0.583**, and its accuracy (0.666) is *below* always guessing the majority class (0.687).
+- **Why it matters:** **this is a result, not a failure.** We audited data before trusting it, found it invalid, and refused to use it for any clinical decision. Clinical decisions in Dhriti come only from validated instruments.
+- **Say it:** "We audited a popular public OCD dataset and found half of it was clinically impossible. Models trained on it were no better than a coin toss, so we chose not to use it for any clinical decision. Checking the data first is part of doing AI responsibly in health."
+
+---
+
+## 5.5 Numbers inside the product, and why each was chosen
+
+| Number | What | Why this value |
+|---|---|---|
+| **OCI-R ≥ 21** | Screening cut-off for likely OCD (18 items, 0-72) | The published cut-off for the OCI-R |
+| **Y-BOCS bands** | 0-7 subclinical, 8-15 mild, 16-23 moderate, 24-31 severe, 32-40 extreme | Standard Y-BOCS severity bands (Goodman et al. 1989) |
+| **≥ 35% Y-BOCS drop** | Counted as "treatment response" in the report | The widely used response definition in OCD trials |
+| **Care levels 1-4** | Wellbeing → guided self-help → therapist ERP → psychiatrist first | NICE CG31 stepped care, simplified |
+| **2-minute waits** | Urge coach rounds | Short enough to manage, repeated so anxiety can peak and fall |
+| **Half of peak, ≥ 45 s** | 360°: when to suggest the next step | A common ERP rule of thumb: stay until anxiety falls substantially (about half) without neutralising; the 45 s minimum stops instant skipping |
+| **6 scenes × 5 steps** | 360° hierarchy | One scene per common OCD theme; five steps from looking to imagining the hardest part |
+| **14 days** | Report window | Two weeks shows a trend without old data dominating |
+| **14416 / 112 / 108** | Tele-MANAS, national emergency, ambulance | Official Indian numbers |
+| **Release gate 0.99** | Minimum self-harm recall to ship | Safety first: missing a crisis is the worst error |
 
 ---
 
@@ -450,6 +711,15 @@ Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 (via Claude Code CLI; tools off; our s
 48. **Biggest limitation?** No clinical trial yet, and one author's reference labels in OCD-EVAL. Both are next steps, stated on slide 6.
 49. **Why "Claude 5.5" and "Gemini 3.x"? Are those real?** They are the model versions reported by the APIs on the day of the run (8 Nov 2026), recorded in the transcripts.
 50. **Could Dhriti itself cause harm?** Possible risks: missing a crisis (mitigated by the safety screen and release gate), over-reliance on the app (it routes to professionals), unsuitable exposure for severe cases (warnings, level 4 routing). These are reasons for a supervised pilot before public use.
+
+---
+
+### G. "Did you build this yourselves?"
+51. **Did you use AI to build this?** "Yes, and we're open about it. We designed the project: the research question, the clinical rules (ERP, no reassurance, paired controls), the features and what counts as safe. We used AI coding assistants (Claude Code) to help write and test the code, draft documents and the OCD-EVAL cases from our specifications. Everything was then checked by us and by automated evidence: 63 tests, the evaluation scripts, the 130/130 judge validation and the 65/65 grader check. Using AI to build is fine; trusting it without checking is not, and that is exactly what our research is about." (The git history shows AI co-author lines on recent commits, so never deny it.)
+52. **How long did this take? The repository is only a few days old.** Answer with your **real timeline**. The OCD-EVAL study ran on 8 November 2026 (in its own repository), and this app repository was published on 24 November 2026. Explain any earlier work (the OCD project, design, research) honestly.
+53. **What exactly is "AI" in Dhriti, then?** Speech recognition (browser AI); a Naive Bayes intent classifier (ML) combined with rules; optionally a large language model that plans replies with tools; and in research, an LLM judge. Everything safety-critical is rules and tested code (Part 4A table).
+54. **What does each value in the OCD-EVAL table mean?** A = share of interviews where every graded component was right (strict pass). B · OCD = share of OCD chats where every check passed (3 tasks × 3 trials = 9). B · controls = the same for the 3 controls. C = average number of turns (of 5) before the first failure. (Full explanations in Part 5.2.)
+55. **Why is an AI judging AI acceptable?** Because the judge only answers narrow yes/no questions with quotes, code decides the score, and we measured its agreement with human labels (130/130) before trusting it. It is a measured instrument, not an opinion.
 
 ---
 

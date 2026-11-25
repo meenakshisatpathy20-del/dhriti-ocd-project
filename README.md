@@ -64,7 +64,7 @@ Dhriti helps people with obsessive-compulsive disorder practise **exposure and r
 | **86% vs 48%**: ERP vs clomipramine response in completers (62% vs 42% intent-to-treat) | Foa et al. 2005, *American Journal of Psychiatry* |
 | **53.9%** of new mothers had intrusive thoughts of intentional infant harm; such thoughts were not linked to actual harm | Collardeau et al. 2024; Fairbrother et al. 2022, *J Clin Psychiatry* |
 
-Full sources and how each number is used: [docs/PANEL_GUIDE.md, Part 5](docs/PANEL_GUIDE.md#part-5--every-number-and-where-it-comes-from).
+Full sources and how each number is used: [docs/PANEL_GUIDE.md, Part 5](docs/PANEL_GUIDE.md#part-5--every-number-explained).
 
 ## Why voice?
 
