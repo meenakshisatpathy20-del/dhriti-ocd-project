@@ -40,4 +40,4 @@ Results: [eval/RESULTS.md](../eval/RESULTS.md).
 
 ## 3. Unit tests (`npm test`)
 
-57 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.
+63 tests: instruments and routing, KYC, multilingual NLP, function-vs-content safety, guardrails, agent invariants (including a fake model that tries to reassure and is rewritten), ML maths, grader validation and the lab.

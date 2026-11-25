@@ -4,7 +4,7 @@
   "private": true,
   "description": "Dhriti - a voice-first OCD companion for India (research prototype)",
   "type": "module",
-  "author": "Meenakshi Satpathy",
+  "author": "Meenakshi Satpathy, Alok Kumar Choudhary, Nitin Raj",
   "license": "MIT",
   "scripts": {
     "dev": "concurrently -n web,api -c magenta,cyan \"vite\" \"tsx watch server/index.ts\"",

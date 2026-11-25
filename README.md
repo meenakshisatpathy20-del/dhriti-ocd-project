@@ -53,6 +53,19 @@ Dhriti helps people with obsessive-compulsive disorder practise **exposure and r
 
 ---
 
+## The gap, in numbers
+
+| | |
+|---|---|
+| **0.8%** of Indian adults (about 1 in 125) currently have OCD | National Mental Health Survey of India 2015-16, NIMHANS (Fig. 7) |
+| **83%** treatment gap for neurotic and stress-related disorders, which include OCD | NMHS 2015-16 (Fig. 20) |
+| **11.4 years** on average from first symptoms to an OCD diagnosis | Hezel et al. 2022 (US sample), via Wongbusarakum et al. 2025 |
+| **38.9%** of 360 mental-health professionals misidentified OCD vignettes, most for taboo themes | Glazier et al. 2013, *Annals of Clinical Psychiatry* |
+| **86% vs 48%**: ERP vs clomipramine response in completers (62% vs 42% intent-to-treat) | Foa et al. 2005, *American Journal of Psychiatry* |
+| **53.9%** of new mothers had intrusive thoughts of intentional infant harm; such thoughts were not linked to actual harm | Collardeau et al. 2024; Fairbrother et al. 2022, *J Clin Psychiatry* |
+
+Full sources and how each number is used: [docs/PANEL_GUIDE.md, Part 5](docs/PANEL_GUIDE.md#part-5--every-number-and-where-it-comes-from).
+
 ## Why voice?
 
 OCD urges and panic strike when hands are wet, busy or shaking. Typing is the one thing people can't do in that moment, but they can speak. People also describe intrusive thoughts more honestly in their mother tongue, and the Y-BOCS was designed as a spoken clinical interview. In Dhriti, voice is the main way in, not an add-on.
@@ -198,8 +211,9 @@ docs/        architecture, clinical basis, ML, evaluation, Wispr Flow, ethics & 
 
 ## Documentation
 
-- **[Full presentation guide (PDF)](docs/Dhriti_Full_Presentation_Guide.pdf)**: 15-20 minute script, explanations, demo runbook, viva Q&A
-- [Quick revision guide (PDF)](docs/Dhriti_Quick_Revision_Guide.pdf)
+- **[Panel deck (7 slides, .pptx)](docs/presentation/Dhriti_Panel_Deck.pptx)** and **[3-minute narrated demo video](docs/presentation/Dhriti_Demo_3min.mp4)**
+- **[Panel guide](docs/PANEL_GUIDE.md)** ([PDF](docs/Dhriti_Panel_Guide.pdf)): story intro, slide-by-slide script, demo runbook, every feature, OCD-EVAL and the Safety Lab in depth, every number with its source, 50 cross-questions
+- Earlier, longer versions (16-slide talk): [full presentation guide](docs/Dhriti_Full_Presentation_Guide.pdf) · [quick revision guide](docs/Dhriti_Quick_Revision_Guide.pdf). Some numbers there predate the final fixes; the panel guide is current.
 - [Deploy on Azure](docs/DEPLOY_AZURE.md)
 
 - [Architecture](docs/ARCHITECTURE.md)
@@ -209,6 +223,7 @@ docs/        architecture, clinical basis, ML, evaluation, Wispr Flow, ethics & 
 - [Wispr Flow](docs/WISPR_FLOW.md)
 - [Ethics, privacy & safety](docs/ETHICS_PRIVACY.md)
 
-## Author
+## Team
 
-Meenakshi Satpathy · research project on voice-first, ERP-based support for OCD in India.
+**Meenakshi Satpathy · Alok Kumar Choudhary · Nitin Raj** · BIT Mesra, Ranchi
+Research project on voice-first, ERP-based support for OCD in India, and on how AI models treat people with OCD ([OCD-EVAL](https://github.com/meenakshisatpathy20-del/OCD-EVAL)).
