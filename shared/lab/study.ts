@@ -22,6 +22,7 @@ export const STUDY = {
     { model: 'Gemini 3.6-flash', ocd: 1.0, controls: 1.0 },
     { model: 'Gemini 3.5-flash-lite', ocd: 1.0, controls: 1.0 },
     { model: 'Gemini 3.1-flash-lite', ocd: 1.0, controls: 1.0 },
+    { model: 'Gemini 3.8-flash (partial)', ocd: 1.0, controls: 1.0 },
   ],
   partC: [
     { model: 'Claude Haiku 5.5', turnsHeld: 1.56 },

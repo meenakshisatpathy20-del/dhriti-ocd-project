@@ -57,6 +57,37 @@ Dhriti helps people with obsessive-compulsive disorder practise **exposure and r
 
 OCD urges and panic strike when hands are wet, busy or shaking. Typing is the one thing people can't do in that moment, but they can speak. People also describe intrusive thoughts more honestly in their mother tongue, and the Y-BOCS was designed as a spoken clinical interview. In Dhriti, voice is the main way in, not an add-on.
 
+## The research: OCD-EVAL ("Knowing vs. Doing")
+
+Dhriti is built on our own benchmark, **[OCD-EVAL](https://github.com/meenakshisatpathy20-del/OCD-EVAL)** ([video walkthrough](https://youtu.be/OeligOh9AaE)), created on 8 November 2026. It asks two questions about AI models: can they **recognise** OCD like a clinician, and do they **behave** the way ERP requires when a person with OCD talks to them?
+
+**Design: content vs. function.** OCD is defined by how a thought works (unwanted, resisted, neutralised), not by what it is about. So each OCD task has a **paired control** with the same frightening words and the opposite right answer. A model that reacts to words instead of meaning must fail one side, and a model can't score well by always refusing or always escalating.
+
+| Part | What it tests | Tasks | Grading |
+|---|---|---|---|
+| **A · Knowing** | Triage of raw first-session interviews: symptom labels, diagnosis, DSM-5-TR insight, 10 Y-BOCS items, next step | 10 (5 pairs: harm OCD vs. real risk, absent-insight OCD vs. psychosis, "not just right" OCD vs. OCPD, avoidance-hidden vs. mild OCD, scrupulosity vs. GAD) | Code only; validated with 14 wrong answers and trivial strategies (they score 0.20-0.40) |
+| **B · Doing** | One companion-app reply when the user's ERP plan says "don't reassure me" | 6 (3 OCD + 3 controls: shaken baby, rusty-bin cut, Mass with flu) | Claude Opus judge answers yes/no per behaviour with a quote; code decides pass/fail. 130/130 agreement with hand labels over 4 rounds |
+| **C · Pressure** | The same chats over 5 turns: fact reframe, bargain, guilt, "I'll ask someone else" | 3 × 5 turns | Same judge, every turn |
+
+**Results** (7 models, 3 trials per task; all cases synthetic):
+
+| Model | A · triage strict pass | B · OCD chats | B · controls | C · turns held (of 5) |
+|---|---|---|---|---|
+| Claude Opus 5.5 | 100% | – (judge) | – | – |
+| Claude Haiku 5.5 | 100% | **33%** | 100% | **1.56** |
+| Claude Sonnet 5.5 | 97% | 100% | 100% | 4.00 |
+| Gemini 3.5-flash-lite | 93% | 100% | 100% | 4.89 |
+| Gemini 3.1-flash-lite | 83% | 100% | 100% | 4.78 |
+| Gemini 3.6-flash | quota | 100% | 100% | – |
+| Gemini 3.8-flash | – | 100% (14 of 18 replies, quota) | 100% | – |
+
+**Findings.** (1) *Knowing is not doing:* Claude Haiku triaged the postpartum harm-OCD interview perfectly, yet in chat told that mother to step away from her baby and asked whether he was safe in all 6 harm-OCD conversations. (2) *Failures follow safety style, not model size:* small Gemini lite models held the line better than Claude Sonnet. (3) Most breaks happen at turn 0, before any pressure: a safety reflex triggered by the words "knife" and "baby".
+
+**How Dhriti uses it.**
+- **Design:** each finding became a guardrail. Risk is judged on function, not violent words; the agent recognises the fact, bargain, guilt and proxy tactics; real emergencies still get 108/112 at once.
+- **Safety Lab** (`/lab`): an open platform built on the OCD-EVAL scenarios. It lets anyone test a model by API key or copy-paste, compare it with the published study, and export transcripts in OCD-EVAL format to re-grade with the original LLM judge.
+- **Honest limits:** the Lab's offline grader matches all 65 of OCD-EVAL's hand-labelled verdicts, but it is a rule-based stand-in for the LLM judge. Dhriti was designed using these scenarios, so its own Lab score (3/3 OCD, 2/3 controls, 5/5 turns) shows it behaves as designed; it is not a blind benchmark result. OCD-EVAL itself has 19 tasks, one author and synthetic English cases. See [lab/RESULTS.md](lab/RESULTS.md) and the OCD-EVAL limitations.
+
 ## Features
 
 | Area | What it does | Voice |
