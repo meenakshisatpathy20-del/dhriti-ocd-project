@@ -37,7 +37,7 @@ export default function Panic() {
 
   useEffect(() => {
     alive.current = true;
-    playMood('calm', 0.06);
+    playMood('calm', 0.2);
     return () => {
       alive.current = false;
       meter.current?.stop();

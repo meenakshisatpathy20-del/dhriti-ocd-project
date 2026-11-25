@@ -308,7 +308,7 @@ export default function Exposure() {
     setStep(0);
     setSuds([]);
     t0.current = Date.now();
-    playMood('focus', 0.04);
+    playMood('focus', 0.22);
     speak(`${def.steps[0]} ${lang === 'hi' ? 'Anxiety 0 se 10 mein boliye. Aage badhne ke liye "aage" boliye.' : 'Say your anxiety from 0 to 10. Say "next" to move on.'}`, lang);
   };
 

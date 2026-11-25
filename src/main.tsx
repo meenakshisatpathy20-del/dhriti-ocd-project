@@ -4,6 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { StoreProvider } from './state/store';
 import './styles/global.css';
+import { unlockAudioOnFirstTap } from './lib/music';
+
+unlockAudioOnFirstTap();
 
 // Offline support: cache the app shell so the on-device agent, ERP coach and panic mode work without a network.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

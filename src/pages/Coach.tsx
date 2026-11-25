@@ -58,7 +58,7 @@ export default function Coach() {
     if (!started.current) started.current = Date.now();
     if (round === 0) {
       speak(phrase('urgeWait', lang), lang);
-      playMood('focus', 0.05);
+      playMood('focus', 0.22);
     }
     window.clearInterval(timer.current);
     timer.current = window.setInterval(() => {

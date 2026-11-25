@@ -4,7 +4,7 @@ import { useStore, uid } from '../state/store';
 import { phrase } from '../../shared/i18n/phrases';
 import { speak, stopSpeaking } from '../lib/speech';
 import { MicMeter, SustainTracker } from '../lib/mic';
-import { MOOD_LIST, moodFor, playMood, playingMood, stopMusic, type Mood } from '../lib/music';
+import { MOOD_LIST, moodFor, playMood, playingMood, stopMusic, audioState, onMusicChange, type Mood } from '../lib/music';
 import { classify } from '../../shared/nlp/classifier';
 import { tokens, containsPhrase } from '../../shared/nlp/normalize';
 import { VoiceInput } from '../components/VoiceInput';
@@ -60,7 +60,7 @@ function Bhramari() {
     }
     setRunning(true);
     started.current = Date.now();
-    playMood('om', 0.04);
+    playMood('om', 0.12); // kept low so the microphone hears the hum, not the music
     await speak(lang === 'hi' ? 'Aankhein band kijiye. Saans andar lijiye, aur saans chhodte hue mmm gungunaaiye.' : 'Close your eyes. Breathe in, and as you breathe out, hum mmm.', lang);
     m.setHandler((f) => {
       const voiced = f.pitch !== null && f.rms > m.baseline * 2;
@@ -211,6 +211,13 @@ function BodyScan() {
 /** Assigned music: Dhriti suggests a soundscape for each situation. */
 function MusicPanel() {
   const [playing, setPlaying] = useState<Mood | null>(playingMood());
+  const [blocked, setBlocked] = useState(false);
+  useEffect(() => onMusicChange(setPlaying), []);
+  useEffect(() => {
+    if (!playing) return;
+    const t = setTimeout(() => setBlocked(audioState() !== 'running'), 800);
+    return () => clearTimeout(t);
+  }, [playing]);
   const hour = new Date().getHours();
   const suggested = moodFor(hour >= 21 || hour < 5 ? 'night' : 'default');
   return (
@@ -222,9 +229,10 @@ function MusicPanel() {
             {m.id === suggested && <span className="badge ok">Suggested now</span>}
           </div>
           <p className="muted" style={{ margin: 0 }}>{m.use}</p>
-          <button className="btn" onClick={() => { if (playing === m.id) { stopMusic(); setPlaying(null); } else { playMood(m.id); setPlaying(m.id); } }}>{playing === m.id ? 'Stop' : 'Play'}</button>
+          <button className={`btn ${playing === m.id ? 'primary' : ''}`} onClick={() => { if (playing === m.id) stopMusic(); else playMood(m.id); }}>{playing === m.id ? <>⏸ Stop <span className="soundbars mini" aria-hidden><span /><span /><span /></span></> : '▶ Play'}</button>
         </div>
       ))}
+      {blocked && <div className="notice">No sound? Turn up the volume, switch off silent mode (iPhone ring/silent switch), and tap Play again.</div>}
       <p className="faint">Soundscapes are generated live on your phone, so they work offline. Panic mode plays "Calm night sky", the urge coach plays "Steady orbit", and Bhramari plays the "Om drone" automatically.</p>
     </div>
   );
