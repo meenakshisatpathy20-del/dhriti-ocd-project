@@ -1,5 +1,5 @@
 /* Dhriti service worker: app shell offline, API always from the network. */
-const CACHE = 'dhriti-v1';
+const CACHE = 'dhriti-v2';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/manifest.webmanifest', '/icon.svg'])).then(() => self.skipWaiting()));

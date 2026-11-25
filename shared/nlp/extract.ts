@@ -12,31 +12,31 @@ export interface EpisodeExtraction {
 const PATTERNS: { type: CompulsionType; words: string[]; urge: string; fear: string }[] = [
   {
     type: 'washing',
-    words: ['wash', 'clean', 'dirty', 'germs', 'contaminated', 'bath', 'sanitize', 'dho', 'dhone', 'dhona', 'saaf', 'ganda', 'gande', 'nahana', 'haath', 'धोने', 'गंदा', 'கழுவ', 'அழுக்கு', 'ধুতে', 'অপরিষ্কার'],
+    words: ['wash', 'washing', 'washed', 'washes', 'hands', 'hand', 'soap', 'sanitizer', 'sanitiser', 'shower', 'showering', 'clean', 'cleaning', 'cleaned', 'dirty', 'germs', 'contaminated', 'bath', 'sanitize', 'dho', 'dhone', 'dhona', 'saaf', 'ganda', 'gande', 'nahana', 'haath', 'धोने', 'गंदा', 'கழுவ', 'அழுக்கு', 'ধুতে', 'অপরিষ্কার'],
     urge: 'Wash or clean again',
     fear: 'Contamination or getting ill',
   },
   {
     type: 'checking',
-    words: ['check', 'lock', 'locked', 'door', 'gas', 'stove', 'switch', 'tap', 'taala', 'darwaza', 'band', 'चेक', 'ताला', 'दरवाज़ा', 'சரிபார்', 'பூட்டு', 'চেক', 'তালা'],
+    words: ['check', 'checking', 'checked', 'checks', 'recheck', 'lock', 'locked', 'door', 'gas', 'stove', 'switch', 'tap', 'taala', 'darwaza', 'band', 'चेक', 'ताला', 'दरवाज़ा', 'சரிபார்', 'பூட்டு', 'চেক', 'তালা'],
     urge: 'Check again',
     fear: 'Something bad happening (fire, theft, harm)',
   },
   {
     type: 'ordering',
-    words: ['arrange', 'straight', 'symmetry', 'order', 'just right', 'seedha', 'theek se', 'sajana', 'सीधा', 'வரிசை', 'সাজা'],
+    words: ['arrange', 'arranging', 'straight', 'straighten', 'straightening', 'even', 'neat', 'symmetry', 'order', 'just right', 'seedha', 'theek se', 'sajana', 'सीधा', 'வரிசை', 'সাজা'],
     urge: 'Arrange things until they feel right',
     fear: "Things not feeling 'just right'",
   },
   {
     type: 'counting',
-    words: ['count', 'number', 'times', 'ginti', 'gin', 'गिनती', 'எண்ண', 'গোনা'],
+    words: ['count', 'counting', 'counted', 'number', 'times', 'ginti', 'gin', 'गिनती', 'எண்ண', 'গোনা'],
     urge: 'Count or repeat a number of times',
     fear: 'Something bad happening unless it is done right',
   },
   {
     type: 'reassurance',
-    words: ['ask', 'sure', 'pakka', 'confirm', 'poochna', 'पूछ', 'உறுதி', 'নিশ্চিত'],
+    words: ['ask', 'asking', 'asked', 'reassure', 'reassurance', 'sure', 'pakka', 'confirm', 'poochna', 'पूछ', 'உறுதி', 'নিশ্চিত'],
     urge: 'Ask someone for certainty',
     fear: 'Not being completely certain',
   },

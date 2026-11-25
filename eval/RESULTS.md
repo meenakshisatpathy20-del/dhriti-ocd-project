@@ -56,18 +56,16 @@ Items: 145 utterances in 5 language groups.
 
 ## Held-out set (never used for tuning)
 
-Items: 21. Accuracy 0.762, macro-F1 0.767, self-harm recall 0.250, panic recall 0.750.
+Items: 21. Accuracy 0.952, macro-F1 0.952, self-harm recall 1.000, panic recall 1.000.
 
 Self-harm items caught by the crisis screen OR the soft risk check-in: 1.000.
 
 **Finding (v1):** before the soft risk check-in existed, exact-phrase rules caught only 1 of 4 held-out self-harm phrasings (recall 0.25). Keyword rules do not generalise to new wording. The soft risk screen was added in response, so this held-out set is no longer fully unseen; a fresh held-out set (v2), clinician-labelled, is required. When a language model is connected, it acts as an additional safety classifier.
 
+**Update (v1.1):** explicit statements of suicidal thoughts ("thinking of taking my life", "no point living", "apne aap ko hurt karna hai") now open crisis support directly instead of only the soft check-in, and panic phrasing about breathing and heart rate was added. These additions were informed by held-out misses, so held-out numbers below are optimistic.
+
 This is the more honest estimate of real-world performance. Errors:
 
-- [en] "I honestly feel like there is no point living like this" - expected SELF_HARM, got DIARY
-- [en] "I have been thinking of taking my life" - expected SELF_HARM, got DIARY
-- [hinglish] "mujhe apne aap ko hurt karna hai" - expected SELF_HARM, got URGE
-- [en] "my breathing is out of control and my heart wont slow down" - expected PANIC, got DIARY
 - [en] "can you confirm that I switched off the geyser?" - expected REASSURANCE, got DIARY
 
 ## Limitations

@@ -71,8 +71,15 @@ export function playMood(mood: Mood, volume = 0.3): void {
   const now = c.currentTime;
   const master = c.createGain();
   master.gain.setValueAtTime(0, now);
-  master.gain.linearRampToValueAtTime(Math.min(1, volume), now + 2.5);
+  // Phone speakers are small: scale the requested volume up, then let a gentle
+  // limiter (not the default squashing compressor) catch the peaks.
+  master.gain.linearRampToValueAtTime(Math.min(0.95, volume * 2.2), now + 2.5);
   const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -6;
+  comp.knee.value = 6;
+  comp.ratio.value = 4;
+  comp.attack.value = 0.01;
+  comp.release.value = 0.4;
   const filter = c.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = 2600;
@@ -87,7 +94,7 @@ export function playMood(mood: Mood, volume = 0.3): void {
       o.frequency.value = f * mult;
       o.detune.value = (i - 1) * 5;
       const g = c.createGain();
-      const base = (k === 0 ? 0.32 : 0.1) / m.pad.length;
+      const base = (k === 0 ? 0.55 : 0.16) / m.pad.length;
       g.gain.value = base;
       const lfo = c.createOscillator();
       lfo.frequency.value = m.lfo * (1 + i * 0.35);
@@ -114,7 +121,7 @@ export function playMood(mood: Mood, volume = 0.3): void {
     o2.frequency.value = f * 2.01;
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.22, t + 0.03);
+    g.gain.linearRampToValueAtTime(0.3, t + 0.03);
     g.gain.exponentialRampToValueAtTime(0.0008, t + 3.2);
     const g2 = ctx.createGain();
     g2.gain.value = 0.25;
@@ -155,4 +162,82 @@ export const audioState = () => ctx?.state ?? 'none';
 export function onMusicChange(fn: (m: Mood | null) => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+// ---------- Scene ambience for 360° exposure practice ----------
+
+export type Ambience = 'washroom' | 'kitchen' | 'hall' | 'room' | 'temple';
+
+let noiseBuf: AudioBuffer | null = null;
+function brownNoise(c: AudioContext): AudioBuffer {
+  if (noiseBuf && noiseBuf.sampleRate === c.sampleRate) return noiseBuf;
+  const len = c.sampleRate * 4;
+  const b = c.createBuffer(1, len, c.sampleRate);
+  const d = b.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++) {
+    last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+    d[i] = last * 3.5;
+  }
+  noiseBuf = b;
+  return b;
+}
+
+/**
+ * Quiet, realistic background sound for an exposure scene (a dripping tap in a
+ * station washroom, a ticking clock at home, a temple bell...). Realism makes
+ * exposure work better than music, which can become a distraction or a ritual.
+ */
+export function playAmbience(kind: Ambience, volume = 0.35): void {
+  stopMusic();
+  const c = audio();
+  if (!c) return;
+  const now = c.currentTime;
+  const master = c.createGain();
+  master.gain.setValueAtTime(0, now);
+  master.gain.linearRampToValueAtTime(Math.min(0.95, volume * 2), now + 2);
+  master.connect(c.destination);
+
+  const src = c.createBufferSource();
+  src.buffer = brownNoise(c);
+  src.loop = true;
+  const f = c.createBiquadFilter();
+  f.type = 'lowpass';
+  f.frequency.value = { washroom: 900, kitchen: 1400, hall: 500, room: 400, temple: 600 }[kind];
+  const ng = c.createGain();
+  ng.gain.value = { washroom: 0.35, kitchen: 0.25, hall: 0.3, room: 0.2, temple: 0.18 }[kind];
+  src.connect(f).connect(ng).connect(master);
+  src.start(now);
+  const stops: (() => void)[] = [() => src.stop()];
+
+  const blip = (freq: number, to: number, dur: number, gain: number, type: OscillatorType = 'sine') => {
+    if (!ctx) return;
+    const t = ctx.currentTime + 0.02;
+    const o = ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    o.connect(g).connect(master);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  };
+  const bell = () => [1, 2.76, 5.4].forEach((m, i) => blip(620 * m, 620 * m * 0.995, 4 - i, 0.12 / (i + 1)));
+
+  const events: Record<Ambience, { every: number; fn: () => void }> = {
+    washroom: { every: 1.7, fn: () => blip(1400 + Math.random() * 300, 500, 0.12, 0.35) },
+    kitchen: { every: 1, fn: () => blip(1800, 1700, 0.03, 0.18, 'square') },
+    hall: { every: 1, fn: () => blip(2200, 2100, 0.02, 0.15, 'square') },
+    room: { every: 1, fn: () => blip(2000, 1900, 0.02, 0.12, 'square') },
+    temple: { every: 9, fn: bell },
+  };
+  const ev = events[kind];
+  ev.fn();
+  const timer = window.setInterval(() => { if (kind !== 'washroom' || Math.random() < 0.7) ev.fn(); }, ev.every * 1000);
+  nodes = { stops, master, timer };
+  current = null;
+  listeners.forEach((fn) => fn(null));
 }

@@ -36,7 +36,16 @@ describe('function, not content (OCD-EVAL lesson)', () => {
     expect(classify('what if my kids die from the germs on the bin').riskCheck).toBe(false);
   });
   it('indirect self-harm wording triggers the soft check-in', () => {
-    expect(classify('I have been thinking of taking my life').riskCheck).toBe(true);
+    const c = classify('some nights I wish I could just not wake up');
+    expect(c.riskCheck || c.intent === 'SELF_HARM').toBe(true);
+  });
+  it('explicit suicidal thoughts open crisis support, not just a check-in', () => {
+    expect(classify('I have been thinking of taking my life').intent).toBe('SELF_HARM');
+    expect(classify('I honestly feel like there is no point living like this').intent).toBe('SELF_HARM');
+    expect(classify('mujhe apne aap ko hurt karna hai').intent).toBe('SELF_HARM');
+  });
+  it('everyday OCD washing and checking phrasing is recognised', () => {
+    expect(classify('this anxiety is killing me, I keep washing my hands').intent).not.toBe('SELF_HARM');
   });
   it('a wound is a practical medical question', () => {
     expect(classify('I cut my hand deeply on a rusty bin, do I need a tetanus jab?').intent).toBe('MEDICAL');

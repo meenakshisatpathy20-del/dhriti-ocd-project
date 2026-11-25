@@ -37,6 +37,7 @@ export function useReportData() {
       peakTrend: [...peakByDay.entries()].sort().map(([day, peaks]) => ({ day, avgPeak: peaks.reduce((a, b) => a + b, 0) / peaks.length })),
       reassurance14,
       practice14: data.practice.filter((p) => Date.parse(p.at) >= since).length,
+      exposures14: data.practice.filter((p) => p.kind === 'vr' && Date.parse(p.at) >= since).slice(-8).reverse(),
       diaryCount: data.diary.length,
       ladderMastered: data.ladder.filter((l) => l.mastered).length,
       ladderTotal: data.ladder.length,
@@ -84,6 +85,12 @@ export default function Report() {
           <Bars max={Math.max(1, total)} items={[{ label: 'resisted', value: r.outcomes.resisted }, { label: 'delayed', value: r.outcomes.delayed }, { label: 'did the compulsion', value: r.outcomes.did }]} />
           {r.latestOcir && <p className="muted" style={{ marginTop: 12 }}>Latest OCI-R: {r.latestOcir.total}/72 · dominant: {r.latestOcir.dominant.join(', ') || 'none'}</p>}
           <p className="muted">Practice sessions (breathing, meditation, 360°): {r.practice14}. Diary entries: {r.diaryCount}.</p>
+          {r.exposures14.length > 0 && (
+            <>
+              <h3>360° exposure sessions</h3>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>{r.exposures14.map((p) => <li key={p.id}><small>{new Date(p.at).toLocaleDateString()} · {p.detail} · {p.minutes} min</small></li>)}</ul>
+            </>
+          )}
         </div>
       </div>
     </div>

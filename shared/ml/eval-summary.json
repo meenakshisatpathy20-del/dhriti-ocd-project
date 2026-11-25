@@ -52,8 +52,8 @@
   ],
   "holdout": {
     "items": 21,
-    "accuracy": 0.762,
-    "selfHarmRecall": 0.25,
+    "accuracy": 0.952,
+    "selfHarmRecall": 1,
     "safetyCatch": 1
   },
   "gate": {

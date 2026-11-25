@@ -74,10 +74,10 @@ export function labRouter(nb: NaiveBayesModel): Router {
     if (problem) return res.status(400).json({ error: problem });
     if ([...jobs.values()].filter((j) => j.status === 'running').length >= MAX_CONCURRENT) return res.status(429).json({ error: 'The lab is busy with other evaluations. Please try again in a minute.' });
 
-    const fn = openAiCompatible(String(baseUrl), String(apiKey), m, 45_000);
-    // Quick connectivity check so bad keys fail fast instead of 21 times.
+    const fn = openAiCompatible(String(baseUrl), String(apiKey), m, 60_000, 4);
+    // Quick connectivity check (no retries) so bad keys fail fast instead of 21 times.
     try {
-      await fn('Reply with OK.', [{ role: 'user', content: 'ping' }], []);
+      await openAiCompatible(String(baseUrl), String(apiKey), m, 30_000, 1)('Reply with OK.', [{ role: 'user', content: 'ping' }], []);
     } catch (e) {
       return res.status(400).json({ error: `Could not reach the model: ${(e as Error).message}` });
     }

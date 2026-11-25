@@ -6,6 +6,51 @@ Dhriti helps people with obsessive-compulsive disorder practise **exposure and r
 
 > **Research prototype.** Dhriti supports care; it does not diagnose or replace a clinician. In crisis in India call **Tele-MANAS 14416** (free, 24x7), or **112** for emergencies.
 
+**Live demo:** https://dhriti-gqgghbcmg4ercacg.koreacentral-01.azurewebsites.net/ · open on a phone in Chrome for voice, motion and cardboard VR. Tip: **Profile → Load demo data** fills four weeks of fictional history.
+
+## Screenshots
+
+| Talk to Dhriti (voice-first home) | Urge coach (ERP) |
+|---|---|
+| ![Home](docs/screenshots/home.png) | ![Urge coach](docs/screenshots/coach.png) |
+
+**360° exposure practice.** Six furnished, life-size scenes, one for each common OCD theme. Each step of the exposure hierarchy turns your view to the trigger, walks you closer and marks it. Dhriti asks for your anxiety every minute and tells you when it has dropped enough to move on.
+
+| Station washroom, step 2: walk up to the tap | Harm OCD: kitchen knife |
+|---|---|
+| ![360 step](docs/screenshots/vr-step.png) | ![Knife scene](docs/screenshots/vr-knife.png) |
+| **Checking: gas stove** | **Scrupulosity: prayer room** |
+| ![Stove scene](docs/screenshots/vr-stove.png) | ![Prayer scene](docs/screenshots/vr-prayer.png) |
+
+| Spoken screening (OCI-R, Y-BOCS, mood) | 14-day progress report for the clinician |
+|---|---|
+| ![Screening](docs/screenshots/screening.png) | ![Report](docs/screenshots/report.png) |
+| **Generative music (works offline)** | **Verified professionals and booking** |
+| ![Music](docs/screenshots/music.png) | ![Care](docs/screenshots/care.png) |
+
+**Safety Lab: an open evaluation platform built on our OCD-EVAL benchmark**
+
+| Overview | Leaderboard (any model vs. the published study) |
+|---|---|
+| ![Lab](docs/screenshots/lab.png) | ![Leaderboard](docs/screenshots/lab-leaderboard.png) |
+| **Dhriti's own report, run live in the browser** | **Quick check: grade any single reply** |
+| ![Lab Dhriti](docs/screenshots/lab-dhriti.png) | ![Quick check](docs/screenshots/lab-quick.png) |
+
+<p align="center"><img src="docs/screenshots/mobile-home.png" width="230" alt="Home on a phone" /> &nbsp; <img src="docs/screenshots/mobile-panic.png" width="230" alt="Panic SOS on a phone" /></p>
+<p align="center"><i>On a phone: home and the Panic SOS breathing screen.</i></p>
+
+## How a person with OCD uses Dhriti
+
+| Moment | What they do | What Dhriti does |
+|---|---|---|
+| **An urge hits** ("I have to wash again") | Tap the mic and say it, in Hindi, Hinglish, English, Tamil or Bengali | Recognises the compulsion, trigger and fear; starts a 2-minute ERP wait with calm music; asks for anxiety (0-10) by voice; logs the outcome without judgement |
+| **"Are you sure it's clean?"** | Asks for reassurance, again and again | Kindly declines every form of reassurance (facts, bargains, guilt, "ask someone else") and points back to the therapist's ERP plan |
+| **Panic** | Presses SOS or says "Dhriti, madad" | Calm screen; the mic hears each out-breath and the star dims as breathing slows; one tap calls a trusted person or Tele-MANAS 14416 |
+| **Practice** | Opens a 360° scene that matches their OCD (on a phone, in a cardboard viewer, or in a headset) | Walks them step by step towards the trigger and tells them when anxiety has fallen enough to move on; saves each session for the report |
+| **Low mood or risk** | Says something like "no point living" | Opens crisis support immediately (Tele-MANAS 14416, 112) and stops the ERP flow |
+| **Seeing a professional** | Takes the spoken screening; books a verified psychiatrist or RCI psychologist | Routes to the right care level; shares the 14-day report only with consent; the therapist's ERP plan then guides every reply |
+
+
 ---
 
 ## Why voice?
@@ -24,7 +69,7 @@ OCD urges and panic strike when hands are wet, busy or shaking. Typing is the on
 | **Reassurance guard** | Never answers "are you sure?"; recognises fact / bargain / guilt / proxy pressure; tracks reassurance loops | Fully spoken |
 | **Voice panic button** | Calm screen; calibrated microphone hears each exhale and a star dims as breaths lengthen; "Maa ko bulao" opens WhatsApp to a trusted contact | Breath is the input |
 | **Exposure ladder** | Build ERP steps by voice ("bus ki seat chhoona, saat"); profile-matched suggestions | ✓ |
-| **360° practice** | Three WebGL exposure scenes (washroom, gas stove, front door), drag/gyro look-around, WebXR "Enter VR" for cardboard viewers | "aage", "bas", anxiety numbers |
+| **360° practice** | Six furnished exposure scenes (contamination, checking ×2, harm, symmetry, scrupulosity) with scene sound; a guided camera walks you closer to the trigger step by step; ERP coaching from your anxiety ratings ("stay with it" / "ready for the next step"); look around by drag, phone motion, **cardboard split-screen VR on any phone**, or a WebXR headset; sessions saved to the report | "aage", "bas", anxiety numbers; tap = next step in cardboard |
 | **Meditate & music** | Bhramari humming (mic detects voiced pitch and paces you), thought labelling ("yeh OCD bol raha hai"), spoken body scan, generative ambient music assigned per situation | You speak, not just listen |
 | **Lessons** | 9 psychoeducation lessons (OCD, the cycle, ERP, reassurance, intrusive thoughts, family, panic, treatment, relapse), read aloud, voice quiz | ✓ |
 | **Voice diary & report** | Private spoken diary; 14-day report with Y-BOCS trend, peak-anxiety trend, outcomes; printable PDF; shared only with consent | ✓ |
@@ -58,12 +103,12 @@ Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | **ML pipeline** on the public OCD patient dataset (1,500 records): audit → train → cross-validate → export | `npm run ml` | [ml/reports/REPORT.md](ml/reports/REPORT.md) |
 | **OCD-Eval (intent)**: does Dhriti understand what people say? 145 labelled utterances (8 intents) in 5 language groups + held-out set, self-harm release gate | `npm run eval` | [eval/RESULTS.md](eval/RESULTS.md) |
 | **Safety Lab (OCD-EVAL behaviour)**: Dhriti's agent vs. our OCD-EVAL scenarios, grader validated against hand labels | `npm run lab` | [lab/RESULTS.md](lab/RESULTS.md) |
-| **Unit tests** (57) | `npm test` | – |
+| **Unit tests** (59) | `npm test` | – |
 
 ### Key findings (honest)
 
 1. **The public OCD dataset is synthetic.** Our audit found ~48% of rows exceed the Y-BOCS subscale maximum (20), obsession and compulsion scores are uncorrelated (r = 0.03), and contamination is not linked to washing (χ² p = 0.83). Models trained on it perform at chance. So **clinical decisions in Dhriti come only from validated instruments and published thresholds**; the pipeline is built to be re-run on real, ethically collected data.
-2. **Keyword rules do not generalise.** On a held-out set, exact-phrase self-harm recall was 0.25. We added a broad, self-directed soft-risk check-in (held-out safety catch 1.00) and an optional language-model layer, and we name a clinician-labelled dataset as the next step.
+2. **Keyword rules do not generalise.** On a held-out set, exact-phrase self-harm recall was 0.25. We added a broad, self-directed soft-risk check-in (held-out safety catch 1.00), then made explicit suicidal statements open crisis support directly (held-out self-harm recall now 1.00, but optimistic because the misses informed the fix), plus an optional language-model layer. A fresh, clinician-labelled held-out set is the next step.
 3. **Knowing is not doing.** Our OCD-EVAL study showed models that triage OCD perfectly can still tell a mother with harm OCD to step away from her baby. Dhriti turns those findings into guardrails; in the Safety Lab it passes 3/3 OCD conversations and holds the line for 5/5 turns under pressure, and its offline grader agrees with 100% of OCD-EVAL's 65 hand-labelled verdicts. (Not a blind benchmark: see [lab/RESULTS.md](lab/RESULTS.md).)
 
 ## Deploy (recommended for demos)
@@ -103,8 +148,9 @@ Optional: connect the agent to any OpenAI-compatible chat API by copying `.env.e
 3. **SOS** → breathe out into the mic and watch the star dim.
 4. **Screening** → OCI-R + Y-BOCS by voice → care level → **Find a professional** → book → chat → share report.
 5. **For professionals** → apply with KYC → **/admin** verify → sign in to the portal and see the shared report.
-6. **Safety Lab** → *Run the lab live* → see Dhriti pass the OCD-EVAL scenarios turn by turn.
-7. **ML pipeline** → show the data audit and why the models are not used clinically.
+6. **360° practice** → *Railway station washroom* → Begin → rate anxiety → *Next step* and watch the view walk up to the tap (on a phone: *Cardboard viewer*).
+7. **Safety Lab** → *⭐ Dhriti* → *Run again in your browser* → see Dhriti pass the OCD-EVAL scenarios turn by turn; *New evaluation* tests any model with an API key (Groq and Gemini have free tiers).
+8. **ML pipeline** → show the data audit and why the models are not used clinically.
 
 ## Project structure
 
